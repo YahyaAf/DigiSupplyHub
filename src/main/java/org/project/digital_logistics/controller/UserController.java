@@ -1,5 +1,6 @@
 package org.project.digital_logistics.controller;
 
+import org.project.digital_logistics.dto.ApiResponse;
 import org.project.digital_logistics.dto.UserRequestDto;
 import org.project.digital_logistics.dto.UserResponseDto;
 import org.project.digital_logistics.service.UserService;
@@ -18,53 +19,52 @@ public class UserController {
 
     private final UserService userService;
 
-    // Constructor injection (a7san mn @Autowired 3la field)
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @PostMapping
-    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto requestDto) {
-        UserResponseDto response = userService.createUser(requestDto);
+    public ResponseEntity<ApiResponse<UserResponseDto>> createUser(@Valid @RequestBody UserRequestDto requestDto) {
+        ApiResponse<UserResponseDto> response = userService.createUser(requestDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
-        UserResponseDto response = userService.getUserById(id);
+    public ResponseEntity<ApiResponse<UserResponseDto>> getUserById(@PathVariable Long id) {
+        ApiResponse<UserResponseDto> response = userService.getUserById(id);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<UserResponseDto> getUserByEmail(@PathVariable String email) {
-        UserResponseDto response = userService.getUserByEmail(email);
+    public ResponseEntity<ApiResponse<UserResponseDto>> getUserByEmail(@PathVariable String email) {
+        ApiResponse<UserResponseDto> response = userService.getUserByEmail(email);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
-        List<UserResponseDto> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+    public ResponseEntity<ApiResponse<List<UserResponseDto>>> getAllUsers() {
+        ApiResponse<List<UserResponseDto>> response = userService.getAllUsers();
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDto> updateUser(
+    public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(
             @PathVariable Long id,
             @Valid @RequestBody UserRequestDto requestDto) {
-        UserResponseDto response = userService.updateUser(id, requestDto);
+        ApiResponse<UserResponseDto> response = userService.updateUser(id, requestDto);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)  // ← Alternative clean
-    public void deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    public ResponseEntity<ApiResponse<UserResponseDto>> deleteUser(@PathVariable Long id) {
+        ApiResponse<UserResponseDto> response = userService.deleteUser(id);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/count")
-    public ResponseEntity<Long> countUsers() {
-        long count = userService.countUsers();
-        return ResponseEntity.ok(count);
+    public ResponseEntity<ApiResponse<Long>> countUsers() {
+        ApiResponse<Long> response = userService.countUsers();
+        return ResponseEntity.ok(response);
     }
 }

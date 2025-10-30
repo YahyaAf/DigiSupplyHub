@@ -1,5 +1,6 @@
 package org.project.digital_logistics.service;
 
+import org.project.digital_logistics.dto.ApiResponse;
 import org.project.digital_logistics.dto.UserRequestDto;
 import org.project.digital_logistics.dto.UserResponseDto;
 import org.project.digital_logistics.exception.DuplicateResourceException;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,39 +28,45 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDto createUser(UserRequestDto requestDto) {
+    public ApiResponse<UserResponseDto> createUser(UserRequestDto requestDto) {
         if (userRepository.existsByEmail(requestDto.getEmail())) {
             throw new DuplicateResourceException("User", "email", requestDto.getEmail());
         }
 
         User user = UserMapper.toEntity(requestDto);
         User savedUser = userRepository.save(user);
-        return UserMapper.toResponseDto(savedUser);
+        UserResponseDto responseDto = UserMapper.toResponseDto(savedUser);
+
+        return new ApiResponse<>("User created successfully", responseDto);
     }
 
-    public UserResponseDto getUserById(Long id) {
+    public ApiResponse<UserResponseDto> getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
 
-        return UserMapper.toResponseDto(user);
+        UserResponseDto responseDto = UserMapper.toResponseDto(user);
+        return new ApiResponse<>("User retrieved successfully", responseDto);
     }
 
-    public UserResponseDto getUserByEmail(String email) {
+    public ApiResponse<UserResponseDto> getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
 
-        return UserMapper.toResponseDto(user);
+        UserResponseDto responseDto = UserMapper.toResponseDto(user);
+        return new ApiResponse<>("User retrieved successfully", responseDto);
     }
 
-    public List<UserResponseDto> getAllUsers() {
-        return userRepository.findAll()
+    public ApiResponse<List<UserResponseDto>> getAllUsers() {
+        List<UserResponseDto> users = userRepository.findAll()
                 .stream()
                 .map(UserMapper::toResponseDto)
                 .collect(Collectors.toList());
+
+        return new ApiResponse<>("Users retrieved successfully", users);
     }
 
     @Transactional
-    public UserResponseDto updateUser(Long id, UserRequestDto requestDto) {
+    public ApiResponse<UserResponseDto> updateUser(Long id, UserRequestDto requestDto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
 
@@ -69,20 +77,29 @@ public class UserService {
 
         UserMapper.updateEntityFromDto(requestDto, user);
         User updatedUser = userRepository.save(user);
+        UserResponseDto responseDto = UserMapper.toResponseDto(updatedUser);
 
-        return UserMapper.toResponseDto(updatedUser);
+        return new ApiResponse<>("User updated successfully", responseDto);
     }
 
     @Transactional
-    public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
+    public ApiResponse<UserResponseDto> deleteUser(Long id) {
+        Optional<User> userOpt = userRepository.findById(id);
+
+        if (userOpt.isEmpty()) {
             throw new ResourceNotFoundException("User", "id", id);
         }
 
+        User user = userOpt.get();
+        UserResponseDto responseDto = UserMapper.toResponseDto(user);
+
         userRepository.deleteById(id);
+
+        return new ApiResponse<>("User deleted successfully", responseDto);
     }
 
-    public long countUsers() {
-        return userRepository.count();
+    public ApiResponse<Long> countUsers() {
+        long count = userRepository.count();
+        return new ApiResponse<>("Total users count", count);
     }
 }
