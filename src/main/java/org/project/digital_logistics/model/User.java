@@ -1,5 +1,6 @@
 package org.project.digital_logistics.model;
 
+import lombok.experimental.SuperBuilder;
 import org.project.digital_logistics.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,10 +10,11 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
+@Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class User {
 
     @Id
