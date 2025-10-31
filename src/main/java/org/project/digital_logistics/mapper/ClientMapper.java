@@ -11,7 +11,7 @@ public class ClientMapper {
         throw new IllegalStateException("Utility class");
     }
 
-    public static Client toEntity(ClientRequestDto dto) {
+    public static Client toEntity(ClientRequestDto dto, String encodedPassword) {
         if (dto == null) {
             return null;
         }
@@ -19,7 +19,7 @@ public class ClientMapper {
         return Client.builder()
                 .name(dto.getName())
                 .email(dto.getEmail())
-                .passwordHash(dto.getPassword())
+                .passwordHash(encodedPassword)
                 .role(Role.CLIENT)
                 .active(dto.getActive() != null ? dto.getActive() : true)
                 .phoneNumber(dto.getPhoneNumber())
@@ -43,7 +43,7 @@ public class ClientMapper {
                 .build();
     }
 
-    public static void updateEntityFromDto(ClientRequestDto dto, Client client) {
+    public static void updateEntityFromDto(ClientRequestDto dto, Client client, String encodedPassword) {
         if (dto == null || client == null) {
             return;
         }
@@ -55,7 +55,7 @@ public class ClientMapper {
             client.setEmail(dto.getEmail());
         }
         if (dto.getPassword() != null) {
-            client.setPasswordHash(dto.getPassword());
+            client.setPasswordHash(encodedPassword);
         }
         if (dto.getActive() != null) {
             client.setActive(dto.getActive());

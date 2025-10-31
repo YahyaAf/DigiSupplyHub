@@ -9,6 +9,7 @@ import org.project.digital_logistics.mapper.UserMapper;
 import org.project.digital_logistics.model.User;
 import org.project.digital_logistics.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,10 +22,12 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -33,7 +36,9 @@ public class UserService {
             throw new DuplicateResourceException("User", "email", requestDto.getEmail());
         }
 
-        User user = UserMapper.toEntity(requestDto);
+        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+        User user = UserMapper.toEntity(requestDto,encodedPassword);
+
         User savedUser = userRepository.save(user);
         UserResponseDto responseDto = UserMapper.toResponseDto(savedUser);
 
@@ -75,7 +80,9 @@ public class UserService {
             throw new DuplicateResourceException("User", "email", requestDto.getEmail());
         }
 
-        UserMapper.updateEntityFromDto(requestDto, user);
+        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+
+        UserMapper.updateEntityFromDto(requestDto, user, encodedPassword);
         User updatedUser = userRepository.save(user);
         UserResponseDto responseDto = UserMapper.toResponseDto(updatedUser);
 

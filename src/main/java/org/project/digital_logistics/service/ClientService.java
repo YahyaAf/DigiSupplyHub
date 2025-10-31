@@ -9,6 +9,7 @@ import org.project.digital_logistics.mapper.ClientMapper;
 import org.project.digital_logistics.model.Client;
 import org.project.digital_logistics.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,10 +22,12 @@ import java.util.stream.Collectors;
 public class ClientService {
 
     private final ClientRepository clientRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public ClientService(ClientRepository clientRepository) {
+    public ClientService(ClientRepository clientRepository, PasswordEncoder passwordEncoder) {
         this.clientRepository = clientRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -37,7 +40,9 @@ public class ClientService {
             throw new DuplicateResourceException("Client", "phoneNumber", requestDto.getPhoneNumber());
         }
 
-        Client client = ClientMapper.toEntity(requestDto);
+        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+
+        Client client = ClientMapper.toEntity(requestDto, encodedPassword);
         Client savedClient = clientRepository.save(client);
         ClientResponseDto responseDto = ClientMapper.toResponseDto(savedClient);
 
@@ -92,7 +97,9 @@ public class ClientService {
             throw new DuplicateResourceException("Client", "phoneNumber", requestDto.getPhoneNumber());
         }
 
-        ClientMapper.updateEntityFromDto(requestDto, client);
+        String passwordEnder = passwordEncoder.encode(requestDto.getPassword());
+
+        ClientMapper.updateEntityFromDto(requestDto, client, passwordEnder);
         Client updatedClient = clientRepository.save(client);
         ClientResponseDto responseDto = ClientMapper.toResponseDto(updatedClient);
 

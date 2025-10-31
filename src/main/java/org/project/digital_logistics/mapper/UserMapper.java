@@ -10,7 +10,7 @@ public class UserMapper {
         throw new IllegalStateException("Utility class");
     }
 
-    public static User toEntity(UserRequestDto dto) {
+    public static User toEntity(UserRequestDto dto,  String encodedPassword) {
         if (dto == null) {
             return null;
         }
@@ -18,7 +18,7 @@ public class UserMapper {
         return User.builder()
                 .name(dto.getName())
                 .email(dto.getEmail())
-                .passwordHash(dto.getPassword())
+                .passwordHash(encodedPassword)
                 .role(dto.getRole())
                 .active(dto.getActive() != null ? dto.getActive() : true)
                 .build();
@@ -38,7 +38,7 @@ public class UserMapper {
                 .build();
     }
 
-    public static void updateEntityFromDto(UserRequestDto dto, User user) {
+    public static void updateEntityFromDto(UserRequestDto dto, User user, String encodedPassword) {
         if (dto == null || user == null) {
             return;
         }
@@ -50,7 +50,7 @@ public class UserMapper {
             user.setEmail(dto.getEmail());
         }
         if (dto.getPassword() != null) {
-            user.setPasswordHash(dto.getPassword());
+            user.setPasswordHash(encodedPassword);
         }
         if (dto.getRole() != null) {
             user.setRole(dto.getRole());
