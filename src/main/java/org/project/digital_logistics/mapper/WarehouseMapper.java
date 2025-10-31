@@ -56,6 +56,7 @@ public class WarehouseMapper {
         if (dto.getCapacity() != null) {
             warehouse.setCapacity(dto.getCapacity());
         }
+
         if (dto.getActive() != null) {
             warehouse.setActive(dto.getActive());
         }
