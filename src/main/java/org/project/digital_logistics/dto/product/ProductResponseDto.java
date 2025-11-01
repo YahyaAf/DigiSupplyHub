@@ -1,0 +1,24 @@
+package org.project.digital_logistics.dto.product;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ProductResponseDto {
+
+    private Long id;
+    private String sku;
+    private String name;
+    private String category;
+    private Boolean active;
+    private Long originalPrice;
+    private BigDecimal profite;
+    private BigDecimal sellingPrice;
+}
