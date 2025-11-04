@@ -9,6 +9,7 @@ import org.project.digital_logistics.exception.InvalidOperationException;
 import org.project.digital_logistics.exception.ResourceNotFoundException;
 import org.project.digital_logistics.mapper.PurchaseOrderMapper;
 import org.project.digital_logistics.model.*;
+import org.project.digital_logistics.model.enums.MovementType;
 import org.project.digital_logistics.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,27 +27,28 @@ public class PurchaseOrderService {
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
     private final WarehouseRepository warehouseRepository;
+    private final InventoryMovementService movementService;
 
     @Autowired
     public PurchaseOrderService(PurchaseOrderRepository purchaseOrderRepository,
                                 SupplierRepository supplierRepository,
                                 ProductRepository productRepository,
                                 InventoryRepository inventoryRepository,
-                                WarehouseRepository warehouseRepository) {
+                                WarehouseRepository warehouseRepository,
+                                InventoryMovementService movementService) {
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.supplierRepository = supplierRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
         this.warehouseRepository = warehouseRepository;
+        this.movementService = movementService;
     }
 
     @Transactional
     public ApiResponse<PurchaseOrderResponseDto> createPurchaseOrder(PurchaseOrderRequestDto requestDto) {
-        // 1. Fetch Supplier
         Supplier supplier = supplierRepository.findById(requestDto.getSupplierId())
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier", "id", requestDto.getSupplierId()));
 
-        // 2. Validate and fetch Products for each line
         PurchaseOrder purchaseOrder = PurchaseOrder.builder()
                 .supplier(supplier)
                 .expectedDelivery(requestDto.getExpectedDelivery())
@@ -60,10 +62,8 @@ public class PurchaseOrderService {
             purchaseOrder.addOrderLine(line);
         }
 
-        // 3. Save
         PurchaseOrder savedOrder = purchaseOrderRepository.save(purchaseOrder);
 
-        // 4. Convert to DTO
         PurchaseOrderResponseDto responseDto = PurchaseOrderMapper.toResponseDto(savedOrder);
 
         return new ApiResponse<>("Purchase order created successfully", responseDto);
@@ -94,7 +94,6 @@ public class PurchaseOrderService {
     }
 
     public ApiResponse<List<PurchaseOrderResponseDto>> getPurchaseOrdersBySupplier(Long supplierId) {
-        // Verify supplier exists
         if (!supplierRepository.existsById(supplierId)) {
             throw new ResourceNotFoundException("Supplier", "id", supplierId);
         }
@@ -108,11 +107,9 @@ public class PurchaseOrderService {
 
     @Transactional
     public ApiResponse<PurchaseOrderResponseDto> updatePurchaseOrder(Long id, PurchaseOrderRequestDto requestDto) {
-        // 1. Find purchase order
         PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PurchaseOrder", "id", id));
 
-        // 2. Check if can be updated
         if (purchaseOrder.getStatus() == PurchaseOrderStatus.RECEIVED ||
                 purchaseOrder.getStatus() == PurchaseOrderStatus.CANCELED) {
             throw new InvalidOperationException(
@@ -120,11 +117,9 @@ public class PurchaseOrderService {
             );
         }
 
-        // 3. Fetch Supplier
         Supplier supplier = supplierRepository.findById(requestDto.getSupplierId())
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier", "id", requestDto.getSupplierId()));
 
-        // 4. Clear old lines and add new ones
         purchaseOrder.getOrderLines().clear();
 
         for (PurchaseOrderLineDto lineDto : requestDto.getOrderLines()) {
@@ -138,16 +133,14 @@ public class PurchaseOrderService {
         purchaseOrder.setSupplier(supplier);
         purchaseOrder.setExpectedDelivery(requestDto.getExpectedDelivery());
 
-        // 5. Save
         PurchaseOrder savedOrder = purchaseOrderRepository.save(purchaseOrder);
 
-        // 6. Convert to DTO
         PurchaseOrderResponseDto responseDto = PurchaseOrderMapper.toResponseDto(savedOrder);
 
         return new ApiResponse<>("Purchase order updated successfully", responseDto);
     }
 
-    // ✅ APPROVE Purchase Order
+    //  APPROVE Purchase Order
     @Transactional
     public ApiResponse<PurchaseOrderResponseDto> approvePurchaseOrder(Long id) {
         PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(id)
@@ -170,25 +163,21 @@ public class PurchaseOrderService {
         return new ApiResponse<>("Purchase order approved successfully", responseDto);
     }
 
-    // ✅ RECEIVE Purchase Order (+ Update Inventory)
+    //  RECEIVE Purchase Order (+ Update Inventory)
     @Transactional
     public ApiResponse<PurchaseOrderResponseDto> receivePurchaseOrder(Long id, Long warehouseId) {
-        // 1. Find purchase order
         PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PurchaseOrder", "id", id));
 
-        // 2. Validate current status
         if (purchaseOrder.getStatus() != PurchaseOrderStatus.APPROVED) {
             throw new InvalidOperationException(
                     "Can only receive purchase orders with APPROVED status. Current status: " + purchaseOrder.getStatus()
             );
         }
 
-        // 3. Find warehouse
         Warehouse warehouse = warehouseRepository.findById(warehouseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Warehouse", "id", warehouseId));
 
-        // 4. Update inventory for each line
         for (PurchaseOrderLine line : purchaseOrder.getOrderLines()) {
             Product product = line.getProduct();
             Integer quantity = line.getQuantity();
@@ -205,10 +194,17 @@ public class PurchaseOrderService {
 
             // Add received quantity
             inventory.setQtyOnHand(inventory.getQtyOnHand() + quantity);
-            inventoryRepository.save(inventory);
+            Inventory savedInventory = inventoryRepository.save(inventory);
+
+            movementService.recordMovement(
+                    savedInventory.getId(),
+                    MovementType.INBOUND,
+                    quantity,
+                    "PO-" + id,
+                    "Purchase order reception - " + product.getName()
+            );
         }
 
-        // 5. Update purchase order status
         purchaseOrder.setStatus(PurchaseOrderStatus.RECEIVED);
         purchaseOrder.setReceivedAt(LocalDateTime.now());
 
@@ -218,13 +214,11 @@ public class PurchaseOrderService {
         return new ApiResponse<>("Purchase order received successfully and inventory updated", responseDto);
     }
 
-    // ✅ CANCEL Purchase Order
     @Transactional
     public ApiResponse<PurchaseOrderResponseDto> cancelPurchaseOrder(Long id) {
         PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PurchaseOrder", "id", id));
 
-        // Validate current status
         if (purchaseOrder.getStatus() == PurchaseOrderStatus.RECEIVED) {
             throw new InvalidOperationException(
                     "Cannot cancel a purchase order that has already been received"
@@ -235,7 +229,6 @@ public class PurchaseOrderService {
             throw new InvalidOperationException("Purchase order is already canceled");
         }
 
-        // Update status
         purchaseOrder.setStatus(PurchaseOrderStatus.CANCELED);
         purchaseOrder.setCanceledAt(LocalDateTime.now());
 

@@ -9,6 +9,7 @@ import org.project.digital_logistics.mapper.InventoryMapper;
 import org.project.digital_logistics.model.Inventory;
 import org.project.digital_logistics.model.Product;
 import org.project.digital_logistics.model.Warehouse;
+import org.project.digital_logistics.model.enums.MovementType;
 import org.project.digital_logistics.repository.InventoryRepository;
 import org.project.digital_logistics.repository.ProductRepository;
 import org.project.digital_logistics.repository.WarehouseRepository;
@@ -25,14 +26,17 @@ public class InventoryService {
     private final InventoryRepository inventoryRepository;
     private final WarehouseRepository warehouseRepository;
     private final ProductRepository productRepository;
+    private final InventoryMovementService movementService;
 
     @Autowired
     public InventoryService(InventoryRepository inventoryRepository,
                             WarehouseRepository warehouseRepository,
-                            ProductRepository productRepository) {
+                            ProductRepository productRepository,
+                            InventoryMovementService movementService) {
         this.inventoryRepository = inventoryRepository;
         this.warehouseRepository = warehouseRepository;
         this.productRepository = productRepository;
+        this.movementService = movementService;
     }
 
     @Transactional
@@ -181,18 +185,32 @@ public class InventoryService {
 
     @Transactional
     public ApiResponse<InventoryResponseDto> adjustQuantities(Long id, Integer qtyOnHand, Integer qtyReserved) {
-        // Find inventory
         Inventory inventory = inventoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory", "id", id));
 
-        // Validate
+        Integer oldQtyOnHand = inventory.getQtyOnHand();
+
         if (qtyOnHand != null && qtyReserved != null) {
             validateQuantities(qtyOnHand, qtyReserved);
         }
 
-        // Update quantities
         InventoryMapper.updateQuantities(inventory, qtyOnHand, qtyReserved);
         Inventory savedInventory = inventoryRepository.save(inventory);
+
+        if (qtyOnHand != null && !oldQtyOnHand.equals(qtyOnHand)) {
+            Integer quantityDifference = qtyOnHand - oldQtyOnHand;
+
+            movementService.recordMovement(
+                    savedInventory.getId(),
+                    MovementType.ADJUSTMENT,
+                    Math.abs(quantityDifference), // Always positive
+                    "ADJ-" + System.currentTimeMillis(),
+                    "Inventory adjustment - " +
+                            (quantityDifference > 0 ? "Added " : "Removed ") +
+                            Math.abs(quantityDifference) + " units - " +
+                            savedInventory.getProduct().getName()
+            );
+        }
 
         InventoryResponseDto responseDto = InventoryMapper.toResponseDto(savedInventory);
         return new ApiResponse<>("Inventory quantities adjusted successfully", responseDto);

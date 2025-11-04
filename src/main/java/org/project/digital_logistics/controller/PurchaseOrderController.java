@@ -66,14 +66,14 @@ public class PurchaseOrderController {
         return ResponseEntity.ok(response);
     }
 
-    // ✅ APPROVE Purchase Order
+    // APPROVE Purchase Order
     @PatchMapping("/{id}/approve")
     public ResponseEntity<ApiResponse<PurchaseOrderResponseDto>> approvePurchaseOrder(@PathVariable Long id) {
         ApiResponse<PurchaseOrderResponseDto> response = purchaseOrderService.approvePurchaseOrder(id);
         return ResponseEntity.ok(response);
     }
 
-    // ✅ RECEIVE Purchase Order (+ Update Inventory)
+    // RECEIVE Purchase Order (+ Update Inventory)
     @PatchMapping("/{id}/receive")
     public ResponseEntity<ApiResponse<PurchaseOrderResponseDto>> receivePurchaseOrder(
             @PathVariable Long id,
@@ -82,7 +82,7 @@ public class PurchaseOrderController {
         return ResponseEntity.ok(response);
     }
 
-    // ✅ CANCEL Purchase Order
+    // CANCEL Purchase Order
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<ApiResponse<PurchaseOrderResponseDto>> cancelPurchaseOrder(@PathVariable Long id) {
         ApiResponse<PurchaseOrderResponseDto> response = purchaseOrderService.cancelPurchaseOrder(id);
