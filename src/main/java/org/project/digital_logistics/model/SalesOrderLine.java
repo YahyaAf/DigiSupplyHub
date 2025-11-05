@@ -28,6 +28,10 @@ public class SalesOrderLine {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id", nullable = false)
+    private Warehouse warehouse;
+
     @Column(nullable = false)
     private Integer quantity;
 
@@ -48,6 +52,7 @@ public class SalesOrderLine {
                 "id=" + id +
                 ", salesOrderId=" + (salesOrder != null ? salesOrder.getId() : null) +
                 ", productId=" + (product != null ? product.getId() : null) +
+                ", warehouseId=" + (warehouse != null ? warehouse.getId() : null) +
                 ", quantity=" + quantity +
                 ", unitPrice=" + unitPrice +
                 ", backOrder=" + backOrder +

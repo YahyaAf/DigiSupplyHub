@@ -15,13 +15,9 @@ import java.util.List;
 @Builder
 public class SalesOrderRequestDto {
 
-    @NotNull(message = "Client ID is required")
-    @Positive(message = "Client ID must be positive")
-    private Long clientId;
-
-    @NotNull(message = "Warehouse ID is required")
-    @Positive(message = "Warehouse ID must be positive")
-    private Long warehouseId;
+//    @NotNull(message = "Client ID is required")
+//    @Positive(message = "Client ID must be positive")
+//    private Long clientId;
 
     @NotNull(message = "Order lines are required")
     @NotEmpty(message = "Order must have at least one line")

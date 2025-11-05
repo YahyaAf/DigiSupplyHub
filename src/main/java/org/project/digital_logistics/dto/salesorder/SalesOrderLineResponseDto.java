@@ -19,6 +19,10 @@ public class SalesOrderLineResponseDto {
     private String productSku;
     private String productName;
 
+    private Long warehouseId;
+    private String warehouseCode;
+    private String warehouseName;
+
     private Integer quantity;
     private BigDecimal unitPrice;
     private BigDecimal totalPrice;

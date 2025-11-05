@@ -1,5 +1,6 @@
 package org.project.digital_logistics.controller;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.project.digital_logistics.dto.ApiResponse;
 import org.project.digital_logistics.dto.salesorder.SalesOrderRequestDto;
@@ -18,6 +19,8 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class SalesOrderController {
 
+    private static final String SESSION_USER_KEY = "authenticated_user";
+
     private final SalesOrderService salesOrderService;
 
     @Autowired
@@ -27,8 +30,17 @@ public class SalesOrderController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<SalesOrderResponseDto>> createSalesOrder(
-            @Valid @RequestBody SalesOrderRequestDto requestDto) {
-        ApiResponse<SalesOrderResponseDto> response = salesOrderService.createSalesOrder(requestDto);
+            @Valid @RequestBody SalesOrderRequestDto requestDto,
+            HttpSession session) {
+
+        Long authenticatedClientId = (Long) session.getAttribute(SESSION_USER_KEY);
+
+        if (authenticatedClientId == null) {
+            throw new IllegalStateException("Not authenticated. Please login.");
+        }
+
+        ApiResponse<SalesOrderResponseDto> response =
+                salesOrderService.createSalesOrder(requestDto, authenticatedClientId);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -41,6 +53,19 @@ public class SalesOrderController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<SalesOrderResponseDto>>> getAllSalesOrders() {
         ApiResponse<List<SalesOrderResponseDto>> response = salesOrderService.getAllSalesOrders();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/my-orders")
+    public ResponseEntity<ApiResponse<List<SalesOrderResponseDto>>> getMyOrders(HttpSession session) {
+        Long authenticatedClientId = (Long) session.getAttribute(SESSION_USER_KEY);
+
+        if (authenticatedClientId == null) {
+            throw new IllegalStateException("Not authenticated. Please login.");
+        }
+
+        ApiResponse<List<SalesOrderResponseDto>> response =
+                salesOrderService.getSalesOrdersByClient(authenticatedClientId);
         return ResponseEntity.ok(response);
     }
 

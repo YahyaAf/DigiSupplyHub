@@ -13,20 +13,21 @@ public class SalesOrderMapper {
         throw new IllegalStateException("Utility class");
     }
 
-    public static SalesOrder toEntity(SalesOrderRequestDto dto, Client client, Warehouse warehouse) {
+    public static SalesOrder toEntity(SalesOrderRequestDto dto, Client client) {
         if (dto == null) {
             return null;
         }
 
         return SalesOrder.builder()
                 .client(client)
-                .warehouse(warehouse)
                 .build();
     }
 
     public static SalesOrderLine toLineEntity(SalesOrderLineDto dto,
                                               SalesOrder salesOrder,
                                               Product product,
+                                              Warehouse warehouse,
+                                              Integer quantity,
                                               Boolean backOrder) {
         if (dto == null) {
             return null;
@@ -35,7 +36,8 @@ public class SalesOrderMapper {
         return SalesOrderLine.builder()
                 .salesOrder(salesOrder)
                 .product(product)
-                .quantity(dto.getQuantity())
+                .warehouse(warehouse)
+                .quantity(quantity)
                 .unitPrice(dto.getUnitPrice())
                 .backOrder(backOrder != null ? backOrder : false)
                 .build();
@@ -71,20 +73,12 @@ public class SalesOrderMapper {
                         salesOrder.getClient().getPhoneNumber() : null)
                 .clientAddress(salesOrder.getClient() != null ?
                         salesOrder.getClient().getAddress() : null)
-                .warehouseId(salesOrder.getWarehouse() != null ?
-                        salesOrder.getWarehouse().getId() : null)
-                .warehouseCode(salesOrder.getWarehouse() != null ?
-                        salesOrder.getWarehouse().getCode() : null)
-                .warehouseName(salesOrder.getWarehouse() != null ?
-                        salesOrder.getWarehouse().getName() : null)
                 .status(salesOrder.getStatus())
                 .createdAt(salesOrder.getCreatedAt())
                 .reservedAt(salesOrder.getReservedAt())
                 .shippedAt(salesOrder.getShippedAt())
                 .deliveredAt(salesOrder.getDeliveredAt())
-                // Lines
                 .orderLines(lines)
-                // Totals
                 .totalAmount(totalAmount)
                 .totalItems(totalItems)
                 .build();
@@ -97,11 +91,12 @@ public class SalesOrderMapper {
 
         return SalesOrderLineResponseDto.builder()
                 .id(line.getId())
-                // Product info
                 .productId(line.getProduct() != null ? line.getProduct().getId() : null)
                 .productSku(line.getProduct() != null ? line.getProduct().getSku() : null)
                 .productName(line.getProduct() != null ? line.getProduct().getName() : null)
-                // Quantities
+                .warehouseId(line.getWarehouse() != null ? line.getWarehouse().getId() : null)
+                .warehouseCode(line.getWarehouse() != null ? line.getWarehouse().getCode() : null)
+                .warehouseName(line.getWarehouse() != null ? line.getWarehouse().getName() : null)
                 .quantity(line.getQuantity())
                 .unitPrice(line.getUnitPrice())
                 .totalPrice(line.getTotalPrice())

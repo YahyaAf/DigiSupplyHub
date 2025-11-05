@@ -27,10 +27,6 @@ public class SalesOrder {
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "warehouse_id", nullable = false)
-    private Warehouse warehouse;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
@@ -64,7 +60,6 @@ public class SalesOrder {
         return "SalesOrder{" +
                 "id=" + id +
                 ", clientId=" + (client != null ? client.getId() : null) +
-                ", warehouseId=" + (warehouse != null ? warehouse.getId() : null) +
                 ", status=" + status +
                 ", createdAt=" + createdAt +
                 '}';

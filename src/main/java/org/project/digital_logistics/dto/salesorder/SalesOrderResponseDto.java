@@ -24,10 +24,6 @@ public class SalesOrderResponseDto {
     private String clientPhoneNumber;
     private String clientAddress;
 
-    private Long warehouseId;
-    private String warehouseCode;
-    private String warehouseName;
-
     private OrderStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime reservedAt;

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional(readOnly = true)
@@ -25,7 +25,6 @@ public class SalesOrderService {
 
     private final SalesOrderRepository salesOrderRepository;
     private final ClientRepository clientRepository;
-    private final WarehouseRepository warehouseRepository;
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
     private final InventoryMovementService movementService;
@@ -33,29 +32,33 @@ public class SalesOrderService {
     @Autowired
     public SalesOrderService(SalesOrderRepository salesOrderRepository,
                              ClientRepository clientRepository,
-                             WarehouseRepository warehouseRepository,
                              ProductRepository productRepository,
                              InventoryRepository inventoryRepository,
                              InventoryMovementService movementService) {
         this.salesOrderRepository = salesOrderRepository;
         this.clientRepository = clientRepository;
-        this.warehouseRepository = warehouseRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
         this.movementService = movementService;
     }
 
-    @Transactional
-    public ApiResponse<SalesOrderResponseDto> createSalesOrder(SalesOrderRequestDto requestDto) {
-        Client client = clientRepository.findById(requestDto.getClientId())
-                .orElseThrow(() -> new ResourceNotFoundException("Client", "id", requestDto.getClientId()));
+    private static class StockAllocation {
+        Warehouse warehouse;
+        Integer quantity;
 
-        Warehouse warehouse = warehouseRepository.findById(requestDto.getWarehouseId())
-                .orElseThrow(() -> new ResourceNotFoundException("Warehouse", "id", requestDto.getWarehouseId()));
+        StockAllocation(Warehouse warehouse, Integer quantity) {
+            this.warehouse = warehouse;
+            this.quantity = quantity;
+        }
+    }
+
+    @Transactional
+    public ApiResponse<SalesOrderResponseDto> createSalesOrder(SalesOrderRequestDto requestDto, Long authenticatedClientId) {
+        Client client = clientRepository.findById(authenticatedClientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Client", "id", authenticatedClientId));
 
         SalesOrder salesOrder = SalesOrder.builder()
                 .client(client)
-                .warehouse(warehouse)
                 .build();
 
         for (SalesOrderLineDto lineDto : requestDto.getOrderLines()) {
@@ -64,41 +67,42 @@ public class SalesOrderService {
 
             Integer requestedQty = lineDto.getQuantity();
 
-            Integer availableQty = checkStockAvailability(requestDto.getWarehouseId(), product.getId(), requestedQty);
+            List<Inventory> availableInventories = inventoryRepository.findByProductId(product.getId());
 
-            if (availableQty < requestedQty) {
+            if (availableInventories.isEmpty()) {
                 throw new InsufficientStockException(
-                        "Insufficient stock for product: " + product.getName() +
-                                ". Requested: " + requestedQty + ", Available: " + availableQty
+                        "Product " + product.getName() + " is not available in any warehouse"
                 );
             }
 
-            SalesOrderLine line = SalesOrderMapper.toLineEntity(lineDto, salesOrder, product, false);
+            Integer totalAvailable = availableInventories.stream()
+                    .mapToInt(inv -> inv.getQtyOnHand() - inv.getQtyReserved())
+                    .sum();
+
+            if (totalAvailable < requestedQty) {
+                throw new InsufficientStockException(
+                        "Insufficient stock for product: " + product.getName() +
+                                ". Requested: " + requestedQty + ", Available: " + totalAvailable
+                );
+            }
+
+            Warehouse tempWarehouse = availableInventories.stream()
+                    .filter(inv -> (inv.getQtyOnHand() - inv.getQtyReserved()) > 0)
+                    .findFirst()
+                    .map(Inventory::getWarehouse)
+                    .orElseThrow(() -> new InsufficientStockException("No available stock"));
+
+            SalesOrderLine line = SalesOrderMapper.toLineEntity(
+                    lineDto, salesOrder, product, tempWarehouse, requestedQty, false
+            );
             salesOrder.addOrderLine(line);
         }
 
+        // 4. Save
         SalesOrder savedOrder = salesOrderRepository.save(salesOrder);
-
         SalesOrderResponseDto responseDto = SalesOrderMapper.toResponseDto(savedOrder);
 
         return new ApiResponse<>("Sales order created successfully", responseDto);
-    }
-
-    private Integer checkStockAvailability(Long preferredWarehouseId, Long productId, Integer requestedQty) {
-        Inventory preferredInventory = inventoryRepository
-                .findByWarehouseIdAndProductId(preferredWarehouseId, productId)
-                .orElse(null);
-
-        if (preferredInventory != null) {
-            Integer availableInPreferred = preferredInventory.getQtyOnHand() - preferredInventory.getQtyReserved();
-            if (availableInPreferred >= requestedQty) {
-                return availableInPreferred;
-            }
-        }
-
-        Integer totalAvailable = inventoryRepository.getAvailableStockByProduct(productId);
-
-        return totalAvailable != null ? totalAvailable : 0;
     }
 
     @Transactional
@@ -112,29 +116,43 @@ public class SalesOrderService {
             );
         }
 
-        for (SalesOrderLine line : salesOrder.getOrderLines()) {
-            Integer requestedQty = line.getQuantity();
-            Long productId = line.getProduct().getId();
-            Long warehouseId = salesOrder.getWarehouse().getId();
+        List<SalesOrderLine> originalLines = new ArrayList<>(salesOrder.getOrderLines());
+        salesOrder.getOrderLines().clear();
 
-            Inventory inventory = inventoryRepository
-                    .findByWarehouseIdAndProductId(warehouseId, productId)
-                    .orElseThrow(() -> new InsufficientStockException(
-                            "No inventory found for product " + line.getProduct().getName() +
-                                    " in warehouse " + salesOrder.getWarehouse().getName()
-                    ));
+        for (SalesOrderLine originalLine : originalLines) {
+            Product product = originalLine.getProduct();
+            Integer requestedQty = originalLine.getQuantity();
 
-            Integer available = inventory.getQtyOnHand() - inventory.getQtyReserved();
+            List<StockAllocation> allocations = allocateStockAcrossWarehouses(product.getId(), requestedQty);
 
-            if (available < requestedQty) {
+            if (allocations.isEmpty()) {
                 throw new InsufficientStockException(
-                        "Insufficient stock for product: " + line.getProduct().getName() +
-                                ". Requested: " + requestedQty + ", Available: " + available
+                        "Cannot reserve stock for product: " + product.getName()
                 );
             }
 
-            inventory.setQtyReserved(inventory.getQtyReserved() + requestedQty);
-            inventoryRepository.save(inventory);
+            for (StockAllocation allocation : allocations) {
+                Inventory inventory = inventoryRepository
+                        .findByWarehouseIdAndProductId(allocation.warehouse.getId(), product.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Inventory not found"));
+
+                inventory.setQtyReserved(inventory.getQtyReserved() + allocation.quantity);
+                inventoryRepository.save(inventory);
+
+                SalesOrderLine line = SalesOrderMapper.toLineEntity(
+                        SalesOrderLineDto.builder()
+                                .productId(product.getId())
+                                .quantity(allocation.quantity)
+                                .unitPrice(originalLine.getUnitPrice())
+                                .build(),
+                        salesOrder,
+                        product,
+                        allocation.warehouse,
+                        allocation.quantity,
+                        false
+                );
+                salesOrder.addOrderLine(line);
+            }
         }
 
         salesOrder.setStatus(OrderStatus.RESERVED);
@@ -143,7 +161,37 @@ public class SalesOrderService {
         SalesOrder savedOrder = salesOrderRepository.save(salesOrder);
         SalesOrderResponseDto responseDto = SalesOrderMapper.toResponseDto(savedOrder);
 
-        return new ApiResponse<>("Stock reserved successfully", responseDto);
+        return new ApiResponse<>("Stock reserved successfully from multiple warehouses", responseDto);
+    }
+
+    private List<StockAllocation> allocateStockAcrossWarehouses(Long productId, Integer requestedQty) {
+        List<StockAllocation> allocations = new ArrayList<>();
+        Integer remaining = requestedQty;
+
+        List<Inventory> inventories = inventoryRepository.findByProductId(productId)
+                .stream()
+                .filter(inv -> (inv.getQtyOnHand() - inv.getQtyReserved()) > 0)
+                .sorted((a, b) -> Integer.compare(
+                        b.getQtyOnHand() - b.getQtyReserved(),
+                        a.getQtyOnHand() - a.getQtyReserved()
+                ))
+                .toList();
+
+        for (Inventory inventory : inventories) {
+            if (remaining <= 0) break;
+
+            Integer available = inventory.getQtyOnHand() - inventory.getQtyReserved();
+            Integer toAllocate = Math.min(available, remaining);
+
+            allocations.add(new StockAllocation(inventory.getWarehouse(), toAllocate));
+            remaining -= toAllocate;
+        }
+
+        if (remaining > 0) {
+            return Collections.emptyList();
+        }
+
+        return allocations;
     }
 
     @Transactional
@@ -160,12 +208,13 @@ public class SalesOrderService {
         for (SalesOrderLine line : salesOrder.getOrderLines()) {
             Integer shippedQty = line.getQuantity();
             Long productId = line.getProduct().getId();
-            Long warehouseId = salesOrder.getWarehouse().getId();
+            Long warehouseId = line.getWarehouse().getId();
 
             Inventory inventory = inventoryRepository
                     .findByWarehouseIdAndProductId(warehouseId, productId)
                     .orElseThrow(() -> new ResourceNotFoundException("Inventory not found"));
 
+            // Reduce stock
             inventory.setQtyOnHand(inventory.getQtyOnHand() - shippedQty);
             inventory.setQtyReserved(inventory.getQtyReserved() - shippedQty);
             Inventory savedInventory = inventoryRepository.save(inventory);
@@ -176,6 +225,7 @@ public class SalesOrderService {
                     shippedQty,
                     "SO-" + id,
                     "Sales order shipment - " + line.getProduct().getName() +
+                            " from warehouse " + line.getWarehouse().getName() +
                             " to client " + salesOrder.getClient().getName()
             );
         }
@@ -225,7 +275,7 @@ public class SalesOrderService {
             for (SalesOrderLine line : salesOrder.getOrderLines()) {
                 Inventory inventory = inventoryRepository
                         .findByWarehouseIdAndProductId(
-                                salesOrder.getWarehouse().getId(),
+                                line.getWarehouse().getId(),
                                 line.getProduct().getId()
                         )
                         .orElse(null);
