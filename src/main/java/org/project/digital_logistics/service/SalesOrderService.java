@@ -28,18 +28,21 @@ public class SalesOrderService {
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
     private final InventoryMovementService movementService;
+    private final ShipmentService shipmentService;
 
     @Autowired
     public SalesOrderService(SalesOrderRepository salesOrderRepository,
                              ClientRepository clientRepository,
                              ProductRepository productRepository,
                              InventoryRepository inventoryRepository,
-                             InventoryMovementService movementService) {
+                             InventoryMovementService movementService,
+                             ShipmentService shipmentService) {
         this.salesOrderRepository = salesOrderRepository;
         this.clientRepository = clientRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
         this.movementService = movementService;
+        this.shipmentService = shipmentService;
     }
 
     private static class StockAllocation {
@@ -214,7 +217,6 @@ public class SalesOrderService {
                     .findByWarehouseIdAndProductId(warehouseId, productId)
                     .orElseThrow(() -> new ResourceNotFoundException("Inventory not found"));
 
-            // Reduce stock
             inventory.setQtyOnHand(inventory.getQtyOnHand() - shippedQty);
             inventory.setQtyReserved(inventory.getQtyReserved() - shippedQty);
             Inventory savedInventory = inventoryRepository.save(inventory);
@@ -234,9 +236,15 @@ public class SalesOrderService {
         salesOrder.setShippedAt(LocalDateTime.now());
 
         SalesOrder savedOrder = salesOrderRepository.save(salesOrder);
+
+        Shipment shipment = shipmentService.autoCreateShipment(savedOrder);
+
         SalesOrderResponseDto responseDto = SalesOrderMapper.toResponseDto(savedOrder);
 
-        return new ApiResponse<>("Order shipped successfully", responseDto);
+        return new ApiResponse<>(
+                "Order shipped successfully. Tracking number: " + shipment.getTrackingNumber(),
+                responseDto
+        );
     }
 
     @Transactional
