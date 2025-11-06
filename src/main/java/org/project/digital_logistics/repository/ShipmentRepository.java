@@ -18,4 +18,8 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
     List<Shipment> findByStatus(ShipmentStatus status);
 
     boolean existsBySalesOrderId(Long salesOrderId);
+
+    List<Shipment> findByCarrierId(Long carrierId);
+
+    List<Shipment> findByStatusAndCarrierIsNull(ShipmentStatus status);
 }

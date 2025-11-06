@@ -22,6 +22,10 @@ public class ShipmentResponseDto {
     private String clientPhoneNumber;
     private String clientAddress;
 
+    private Long carrierId;
+    private String carrierCode;
+    private String carrierName;
+
     private String trackingNumber;
     private ShipmentStatus status;
     private LocalDateTime plannedDate;

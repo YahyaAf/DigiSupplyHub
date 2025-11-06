@@ -25,6 +25,10 @@ public class Shipment {
     @JoinColumn(name = "sales_order_id", nullable = false, unique = true)
     private SalesOrder salesOrder;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "carrier_id")
+    private Carrier carrier;
+
     @Column(name = "tracking_number", unique = true, nullable = false, length = 100)
     private String trackingNumber;
 

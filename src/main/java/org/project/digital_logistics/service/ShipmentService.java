@@ -1,16 +1,17 @@
 package org.project.digital_logistics.service;
 
 import org.project.digital_logistics.dto.ApiResponse;
-import org.project.digital_logistics.dto.shipment.ShipmentRequestDto;
 import org.project.digital_logistics.dto.shipment.ShipmentResponseDto;
+import org.project.digital_logistics.model.Carrier;
 import org.project.digital_logistics.model.enums.OrderStatus;
 import org.project.digital_logistics.model.enums.ShipmentStatus;
-import org.project.digital_logistics.exception.DuplicateResourceException;
+import org.project.digital_logistics.model.enums.CarrierStatus;
 import org.project.digital_logistics.exception.InvalidOperationException;
 import org.project.digital_logistics.exception.ResourceNotFoundException;
 import org.project.digital_logistics.mapper.ShipmentMapper;
 import org.project.digital_logistics.model.SalesOrder;
 import org.project.digital_logistics.model.Shipment;
+import org.project.digital_logistics.repository.CarrierRepository;
 import org.project.digital_logistics.repository.SalesOrderRepository;
 import org.project.digital_logistics.repository.ShipmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +27,18 @@ public class ShipmentService {
 
     private final ShipmentRepository shipmentRepository;
     private final SalesOrderRepository salesOrderRepository;
+    private final CarrierRepository carrierRepository;
+    private final CarrierService carrierService;
 
     @Autowired
     public ShipmentService(ShipmentRepository shipmentRepository,
-                           SalesOrderRepository salesOrderRepository) {
+                           SalesOrderRepository salesOrderRepository,
+                           CarrierRepository carrierRepository,
+                           CarrierService carrierService) {
         this.shipmentRepository = shipmentRepository;
         this.salesOrderRepository = salesOrderRepository;
+        this.carrierRepository = carrierRepository;
+        this.carrierService = carrierService;
     }
 
     @Transactional
@@ -130,6 +137,10 @@ public class ShipmentService {
             salesOrderRepository.save(salesOrder);
         }
 
+        if (shipment.getCarrier() != null) {
+            carrierService.decrementDailyShipments(shipment.getCarrier().getId());
+        }
+
         Shipment savedShipment = shipmentRepository.save(shipment);
         ShipmentResponseDto responseDto = ShipmentMapper.toResponseDto(savedShipment);
 
@@ -166,6 +177,103 @@ public class ShipmentService {
 
         shipmentRepository.deleteById(id);
         return new ApiResponse<>("Shipment deleted successfully", null);
+    }
+
+    @Transactional
+    public ApiResponse<ShipmentResponseDto> assignCarrier(Long shipmentId, Long carrierId) {
+        Shipment shipment = shipmentRepository.findById(shipmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Shipment", "id", shipmentId));
+
+        if (shipment.getStatus() != ShipmentStatus.PLANNED) {
+            throw new InvalidOperationException(
+                    "Can only assign carrier to PLANNED shipments. Current status: " + shipment.getStatus()
+            );
+        }
+
+        Carrier carrier = carrierRepository.findById(carrierId)
+                .orElseThrow(() -> new ResourceNotFoundException("Carrier", "id", carrierId));
+
+        if (carrier.getStatus() != CarrierStatus.ACTIVE) {
+            throw new InvalidOperationException(
+                    "Cannot assign shipment to carrier with status: " + carrier.getStatus()
+            );
+        }
+
+        if (carrier.getCurrentDailyShipments() >= carrier.getMaxDailyCapacity()) {
+            throw new InvalidOperationException(
+                    "Carrier has reached max daily capacity: " + carrier.getMaxDailyCapacity()
+            );
+        }
+
+        shipment.setCarrier(carrier);
+        shipment.setStatus(ShipmentStatus.IN_TRANSIT);
+        Shipment savedShipment = shipmentRepository.save(shipment);
+
+        carrierService.incrementDailyShipments(carrierId);
+
+        ShipmentResponseDto responseDto = ShipmentMapper.toResponseDto(savedShipment);
+        return new ApiResponse<>(
+                "Carrier " + carrier.getName() + " assigned to shipment successfully",
+                responseDto
+        );
+    }
+
+    @Transactional
+    public ApiResponse<List<ShipmentResponseDto>> assignMultipleShipments(Long carrierId, List<Long> shipmentIds) {
+        Carrier carrier = carrierRepository.findById(carrierId)
+                .orElseThrow(() -> new ResourceNotFoundException("Carrier", "id", carrierId));
+
+        if (carrier.getStatus() != CarrierStatus.ACTIVE) {
+            throw new InvalidOperationException("Carrier is not ACTIVE");
+        }
+
+        int availableCapacity = carrier.getMaxDailyCapacity() - carrier.getCurrentDailyShipments();
+        if (shipmentIds.size() > availableCapacity) {
+            throw new InvalidOperationException(
+                    "Cannot assign " + shipmentIds.size() + " shipments. Available capacity: " + availableCapacity
+            );
+        }
+
+        List<Shipment> assignedShipments = shipmentIds.stream()
+                .map(shipmentId -> {
+                    Shipment shipment = shipmentRepository.findById(shipmentId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Shipment", "id", shipmentId));
+
+                    if (shipment.getStatus() != ShipmentStatus.PLANNED) {
+                        throw new InvalidOperationException(
+                                "Shipment " + shipmentId + " is not PLANNED. Current status: " + shipment.getStatus()
+                        );
+                    }
+
+                    shipment.setStatus(ShipmentStatus.IN_TRANSIT);
+                    shipment.setCarrier(carrier);
+                    return shipmentRepository.save(shipment);
+                })
+                .toList();
+
+        carrier.setCurrentDailyShipments(carrier.getCurrentDailyShipments() + shipmentIds.size());
+        carrierRepository.save(carrier);
+
+        List<ShipmentResponseDto> responseDtos = assignedShipments.stream()
+                .map(ShipmentMapper::toResponseDto)
+                .toList();
+
+        return new ApiResponse<>(
+                shipmentIds.size() + " shipments assigned to carrier " + carrier.getName() + " successfully",
+                responseDtos
+        );
+    }
+
+    public ApiResponse<List<ShipmentResponseDto>> getShipmentsByCarrier(Long carrierId) {
+        if (!carrierRepository.existsById(carrierId)) {
+            throw new ResourceNotFoundException("Carrier", "id", carrierId);
+        }
+
+        List<ShipmentResponseDto> shipments = shipmentRepository.findByCarrierId(carrierId)
+                .stream()
+                .map(ShipmentMapper::toResponseDto)
+                .toList();
+        return new ApiResponse<>("Carrier shipments retrieved successfully", shipments);
     }
 
     public ApiResponse<Long> countShipments() {

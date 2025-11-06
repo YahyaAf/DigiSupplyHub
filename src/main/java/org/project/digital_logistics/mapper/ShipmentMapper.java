@@ -57,6 +57,12 @@ public class ShipmentMapper {
                         shipment.getSalesOrder().getClient().getPhoneNumber() : null)
                 .clientAddress(shipment.getSalesOrder() != null ?
                         shipment.getSalesOrder().getClient().getAddress() : null)
+                .carrierId(shipment.getCarrier() != null ?
+                        shipment.getCarrier().getId() : null)
+                .carrierCode(shipment.getCarrier() != null ?
+                        shipment.getCarrier().getCode() : null)
+                .carrierName(shipment.getCarrier() != null ?
+                        shipment.getCarrier().getName() : null)
                 .trackingNumber(shipment.getTrackingNumber())
                 .status(shipment.getStatus())
                 .plannedDate(shipment.getPlannedDate())
