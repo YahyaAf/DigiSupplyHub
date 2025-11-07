@@ -1,5 +1,6 @@
 package org.project.digital_logistics.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.project.digital_logistics.dto.ApiResponse;
@@ -20,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/carriers")
 @CrossOrigin(origins = "*")
+@Tag(name = "Carriers", description = "Carrier Management - ADMIN for write, ADMIN+WAREHOUSE_MANAGER for read")
 public class CarrierController {
 
     private final CarrierService carrierService;

@@ -1,5 +1,6 @@
 package org.project.digital_logistics.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.project.digital_logistics.dto.ApiResponse;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/inventories")
 @CrossOrigin(origins = "*")
+@Tag(name = "Inventories", description = "Inventory Management - ADMIN for write, ADMIN+WAREHOUSE_MANAGER for read")
 public class InventoryController {
 
     private final InventoryService inventoryService;

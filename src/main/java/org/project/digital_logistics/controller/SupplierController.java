@@ -1,5 +1,6 @@
 package org.project.digital_logistics.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.project.digital_logistics.dto.ApiResponse;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/suppliers")
 @CrossOrigin(origins = "*")
+@Tag(name = "Suppliers", description = "Supplier Management - ADMIN only")
 public class SupplierController {
 
     private final SupplierService supplierService;

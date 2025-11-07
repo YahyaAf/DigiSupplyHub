@@ -1,5 +1,6 @@
 package org.project.digital_logistics.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.project.digital_logistics.dto.ApiResponse;
@@ -20,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/sales-orders")
 @CrossOrigin(origins = "*")
+@Tag(name = "Sales Orders", description = "Sales Order Management - CLIENT for create, ADMIN+WAREHOUSE_MANAGER for manage")
 public class SalesOrderController {
 
     private final SalesOrderService salesOrderService;

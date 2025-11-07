@@ -1,5 +1,6 @@
 package org.project.digital_logistics.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import org.project.digital_logistics.dto.ApiResponse;
 import org.project.digital_logistics.dto.shipment.ShipmentResponseDto;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/shipments")
 @CrossOrigin(origins = "*")
+@Tag(name = "Shipments", description = "Shipment Tracking - ADMIN+WAREHOUSE_MANAGER")
 public class ShipmentController {
 
     private final ShipmentService shipmentService;

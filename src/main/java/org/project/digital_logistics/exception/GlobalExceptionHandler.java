@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "org.project.digital_logistics.controller")
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -72,14 +72,5 @@ public class GlobalExceptionHandler {
         ApiResponse<Void> response = new ApiResponse<>(ex.getMessage(), null);
         response.setSuccess(false);
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
-        ApiResponse<Void> response = new ApiResponse<>(
-                "An unexpected error occurred: " + ex.getMessage(), null
-        );
-        response.setSuccess(false);
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
