@@ -4,10 +4,13 @@ import org.project.digital_logistics.dto.ApiResponse;
 import org.project.digital_logistics.dto.product.ProductRequestDto;
 import org.project.digital_logistics.dto.product.ProductResponseDto;
 import org.project.digital_logistics.exception.DuplicateResourceException;
+import org.project.digital_logistics.exception.InvalidOperationException;
 import org.project.digital_logistics.exception.ResourceNotFoundException;
 import org.project.digital_logistics.mapper.ProductMapper;
 import org.project.digital_logistics.model.Product;
+import org.project.digital_logistics.model.SalesOrderLine;
 import org.project.digital_logistics.repository.ProductRepository;
+import org.project.digital_logistics.repository.SalesOrderLineRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,10 +22,12 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final SalesOrderLineRepository salesOrderLineRepository;
 
     @Autowired
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository,SalesOrderLineRepository salesOrderLineRepository) {
         this.productRepository = productRepository;
+        this.salesOrderLineRepository = salesOrderLineRepository;
     }
 
     @Transactional
@@ -114,5 +119,23 @@ public class ProductService {
     public ApiResponse<Long> countActiveProducts() {
         long count = productRepository.countByActive(true);
         return new ApiResponse<>("Active products counted successfully", count);
+    }
+
+    //ajouter desactivate product
+    public ApiResponse<ProductResponseDto> desactivateProduct(String sku){
+        if(!productRepository.existsBySku(sku)){
+            throw new ResourceNotFoundException("Product", "id", sku);
+        }
+        Product product = productRepository.findBySku(sku)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", sku));
+
+        if(salesOrderLineRepository.existsByProduct(product)){
+            throw new InvalidOperationException("Product already reserved");
+        }
+        product.setActive(false);
+        Product saveProduct = productRepository.save(product);
+        ProductResponseDto responseDto = ProductMapper.toResponseDto(saveProduct);
+
+        return new ApiResponse<>("Desactivate product avec success ",responseDto);
     }
 }

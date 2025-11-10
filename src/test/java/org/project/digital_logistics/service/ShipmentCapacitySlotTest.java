@@ -150,7 +150,7 @@ class ShipmentCapacitySlotTest {
             Shipment newShipment = Shipment.builder()
                     .id(id)
                     .salesOrder(salesOrder)
-                    .status(ShipmentStatus.PLANNED)  // ✅ All PLANNED
+                    .status(ShipmentStatus.PLANNED)
                     .trackingNumber("TRACK-" + id)
                     .build();
             return Optional.of(newShipment);

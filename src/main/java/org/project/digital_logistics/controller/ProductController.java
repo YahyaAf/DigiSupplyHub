@@ -124,4 +124,15 @@ public class ProductController {
         ApiResponse<Long> response = productService.countActiveProducts();
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{sku}/deactivate")
+    public ResponseEntity<ApiResponse<ProductResponseDto>> desactivateProduct(
+            @PathVariable String sku,
+            HttpSession session
+    ){
+        // permission de admin just can modifier status
+        permissionService.requireAdmin(session);
+        ApiResponse<ProductResponseDto> response = productService.desactivateProduct(sku);
+        return ResponseEntity.ok(response);
+    }
 }
