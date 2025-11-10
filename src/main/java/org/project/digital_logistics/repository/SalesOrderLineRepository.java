@@ -5,9 +5,11 @@ import org.project.digital_logistics.model.SalesOrderLine;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface SalesOrderLineRepository extends JpaRepository<SalesOrderLine, Long> {
 
     boolean existsByProduct(Product product);
-    SalesOrderLine findByProduct(Product product);
+    List<SalesOrderLine> findByProduct(Product product);
 }

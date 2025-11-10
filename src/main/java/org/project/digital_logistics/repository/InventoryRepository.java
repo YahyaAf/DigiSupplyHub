@@ -1,6 +1,7 @@
 package org.project.digital_logistics.repository;
 
 import org.project.digital_logistics.model.Inventory;
+import org.project.digital_logistics.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +17,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     boolean existsByWarehouseIdAndProductId(Long warehouseId, Long productId);
     List<Inventory> findByWarehouseId(Long warehouseId);
     List<Inventory> findByProductId(Long productId);
+    boolean existsByProduct(Product product);
 
     @Query("SELECT i FROM Inventory i WHERE i.warehouse.id = :warehouseId " +
             "AND (i.qtyOnHand - i.qtyReserved) < :threshold")

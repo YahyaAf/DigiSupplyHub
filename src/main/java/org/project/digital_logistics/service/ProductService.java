@@ -7,8 +7,11 @@ import org.project.digital_logistics.exception.DuplicateResourceException;
 import org.project.digital_logistics.exception.InvalidOperationException;
 import org.project.digital_logistics.exception.ResourceNotFoundException;
 import org.project.digital_logistics.mapper.ProductMapper;
+import org.project.digital_logistics.model.Inventory;
 import org.project.digital_logistics.model.Product;
 import org.project.digital_logistics.model.SalesOrderLine;
+import org.project.digital_logistics.model.enums.OrderStatus;
+import org.project.digital_logistics.repository.InventoryRepository;
 import org.project.digital_logistics.repository.ProductRepository;
 import org.project.digital_logistics.repository.SalesOrderLineRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +26,13 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final SalesOrderLineRepository salesOrderLineRepository;
+    private final InventoryRepository inventoryRepository;
 
     @Autowired
-    public ProductService(ProductRepository productRepository,SalesOrderLineRepository salesOrderLineRepository) {
+    public ProductService(ProductRepository productRepository,SalesOrderLineRepository salesOrderLineRepository,InventoryRepository inventoryRepository) {
         this.productRepository = productRepository;
         this.salesOrderLineRepository = salesOrderLineRepository;
+        this.inventoryRepository = inventoryRepository;
     }
 
     @Transactional
@@ -132,6 +137,23 @@ public class ProductService {
         if(salesOrderLineRepository.existsByProduct(product)){
             throw new InvalidOperationException("Product already reserved");
         }
+
+        int count = 0;
+        List<Inventory> inventories = inventoryRepository.findByProductId(product.getId());
+        for(Inventory inv : inventories){
+            count += inv.getQtyReserved();
+        }
+        if(count>0){
+            throw new InvalidOperationException("Product already in stock");
+        }
+
+        List<SalesOrderLine> salesOrderLines = salesOrderLineRepository.findByProduct(product);
+        for(SalesOrderLine sl : salesOrderLines){
+            if(sl.getSalesOrder().getStatus() == OrderStatus.CREATED || sl.getSalesOrder().getStatus() == OrderStatus.RESERVED){
+                throw new InvalidOperationException("Product already reserved");
+            }
+        }
+
         product.setActive(false);
         Product saveProduct = productRepository.save(product);
         ProductResponseDto responseDto = ProductMapper.toResponseDto(saveProduct);
