@@ -10,6 +10,7 @@ import org.project.digital_logistics.dto.product.ProductRequestDto;
 
 import java.math.BigDecimal;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -67,6 +68,36 @@ class DtoValidationTest {
 
         // Then
         assertFalse(violations.isEmpty(), "SKU vide doit générer une violation");
+
+        Set<String> messages = violations.stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.toSet());
+
+        boolean hasValidMessage = messages.stream().anyMatch(msg ->
+                msg.equals("SKU is required") ||
+                        msg.equals("SKU must be between 2 and 50 characters") ||
+                        msg.equals("SKU must contain only uppercase letters, numbers, and hyphens")
+        );
+
+        assertTrue(hasValidMessage,
+                "Expected SKU validation error but got: " + messages);
+    }
+
+    @Test
+    void testProductDto_SkuNull() {
+        // Given: SKU null (triggers @NotBlank)
+        ProductRequestDto dto = ProductRequestDto.builder()
+                .sku(null)
+                .name("Dell Laptop")
+                .originalPrice(15000L)
+                .profite(BigDecimal.valueOf(1500.00))
+                .build();
+
+        // When
+        Set<ConstraintViolation<ProductRequestDto>> violations = validator.validate(dto);
+
+        // Then
+        assertFalse(violations.isEmpty(), "SKU null doit générer une violation");
 
         String message = violations.iterator().next().getMessage();
         assertEquals("SKU is required", message);

@@ -20,7 +20,6 @@ public class PermissionService {
         this.userRepository = userRepository;
     }
 
-    // ✅ Get authenticated user
     public User getAuthenticatedUser(HttpSession session) {
         Long userId = (Long) session.getAttribute(SESSION_USER_KEY);
         if (userId == null) {
@@ -31,7 +30,6 @@ public class PermissionService {
                 .orElseThrow(() -> new IllegalStateException("User not found"));
     }
 
-    // ✅ Check if user is ADMIN
     public void requireAdmin(HttpSession session) {
         User user = getAuthenticatedUser(session);
         if (user.getRole() != Role.ADMIN) {
@@ -39,7 +37,6 @@ public class PermissionService {
         }
     }
 
-    // ✅ Check if user is ADMIN or WAREHOUSE_MANAGER
     public void requireWarehouseManager(HttpSession session) {
         User user = getAuthenticatedUser(session);
         if (user.getRole() != Role.ADMIN && user.getRole() != Role.WAREHOUSE_MANAGER) {
@@ -47,7 +44,6 @@ public class PermissionService {
         }
     }
 
-    // ✅ Check if CLIENT owns the resource
     public void checkClientOwnership(HttpSession session, Long resourceClientId) {
         User user = getAuthenticatedUser(session);
 
