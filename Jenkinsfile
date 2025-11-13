@@ -35,7 +35,7 @@ pipeline {
                         echo "Author: $(git log -1 --pretty=format:'%an')"
                         echo "Date: $(git log -1 --pretty=format:'%ad')"
                     else
-                        echo "⚠️ Not a git repository"
+                        echo "Not a git repository"
                     fi
 
                     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -46,12 +46,12 @@ pipeline {
 
     post {
         success {
-            echo '✅ SSH connection working perfectly!'
-            echo '🐳 Jenkins Docker → GitHub via SSH: SUCCESS'
+            echo 'SSH connection working perfectly!'
+            echo 'Jenkins Docker → GitHub via SSH: SUCCESS'
         }
         failure {
-            echo '❌ SSH connection failed'
-            echo '🔍 Check: Credentials, SSH key, GitHub settings'
+            echo 'SSH connection failed'
+            echo 'Check: Credentials, SSH key, GitHub settings'
         }
     }
 }
