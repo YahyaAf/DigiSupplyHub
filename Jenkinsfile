@@ -4,21 +4,21 @@ pipeline {
     stages {
 
 
-        stage('📂 Clone Repository') {
+        stage('Clone Repository') {
             steps {
-                echo '📂 Cloning Digital Logistics repo via SSH...'
+                echo 'Cloning Digital Logistics repo via SSH...'
 
                 git branch: 'main',
                     credentialsId: 'github-ssh-yahyaaf',
                     url: 'git@github.com:YahyaAf/DigiSupplyHub.git'
 
                 sh '''
-                    echo "📁 Files in workspace:"
+                    echo "Files in workspace:"
                     ls -la
 
                     echo ""
-                    echo "📄 Checking pom.xml:"
-                    test -f pom.xml && echo "✅ pom.xml found" || echo "❌ pom.xml not found"
+                    echo "Checking pom.xml:"
+                    test -f pom.xml && echo "pom.xml found" || echo "pom.xml not found"
                 '''
             }
         }
