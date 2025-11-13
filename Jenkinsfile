@@ -23,17 +23,17 @@ pipeline {
             }
         }
 
-        stage('ℹ️ Repository Info') {
+        stage('Repository Info') {
             steps {
                 sh '''
-                    echo "📊 Repository information:"
+                    echo "Repository information:"
                     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
                     if [ -d .git ]; then
-                        echo "📌 Current branch: $(git branch --show-current)"
-                        echo "📝 Latest commit: $(git log -1 --oneline)"
-                        echo "👤 Author: $(git log -1 --pretty=format:'%an')"
-                        echo "📅 Date: $(git log -1 --pretty=format:'%ad')"
+                        echo " Current branch: $(git branch --show-current)"
+                        echo "Latest commit: $(git log -1 --oneline)"
+                        echo "Author: $(git log -1 --pretty=format:'%an')"
+                        echo "Date: $(git log -1 --pretty=format:'%ad')"
                     else
                         echo "⚠️ Not a git repository"
                     fi
