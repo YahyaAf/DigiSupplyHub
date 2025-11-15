@@ -39,6 +39,9 @@ public class Product {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal profite;
 
+    @Column(length = 255)
+    private String imageFilename;
+
     @Override
     public String toString() {
         return "Product{" +

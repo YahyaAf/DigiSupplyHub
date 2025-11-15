@@ -37,4 +37,11 @@ public class ProductRequestDto {
     @DecimalMin(value = "0.00", message = "Profit must be positive")
     @Digits(integer = 17, fraction = 2, message = "Profit must have max 2 decimal places")
     private BigDecimal profite;
+
+    @Size(max = 500, message = "Image URL must not exceed 500 characters")
+    @Pattern(
+            regexp = "^(https?://.*\\.(jpg|jpeg|png|gif|webp|svg))?$",
+            message = "Image must be a valid URL ending with jpg, jpeg, png, gif, webp, or svg"
+    )
+    private String image;
 }

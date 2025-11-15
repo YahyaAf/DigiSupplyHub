@@ -3,16 +3,21 @@ package org.project.digital_logistics.mapper;
 import org.project.digital_logistics.dto.product.ProductRequestDto;
 import org.project.digital_logistics.dto.product.ProductResponseDto;
 import org.project.digital_logistics.model.Product;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
+@Component
 public class ProductMapper {
 
-    private ProductMapper() {
-        throw new IllegalStateException("Utility class");
-    }
+    @Value("${server.port:8080}")
+    private String serverPort;
 
-    public static Product toEntity(ProductRequestDto dto) {
+    @Value("${server.address:localhost}")
+    private String serverAddress;
+
+    public Product toEntity(ProductRequestDto dto) {
         if (dto == null) {
             return null;
         }
@@ -27,9 +32,15 @@ public class ProductMapper {
                 .build();
     }
 
-    public static ProductResponseDto toResponseDto(Product product) {
+    public ProductResponseDto toResponseDto(Product product) {
         if (product == null) {
             return null;
+        }
+
+        String imageUrl = null;
+        if (product.getImageFilename() != null) {
+            imageUrl = String.format("http://%s:%s/api/images/%s",
+                    serverAddress, serverPort, product.getImageFilename());
         }
 
         BigDecimal sellingPrice = BigDecimal.valueOf(product.getOriginalPrice())
@@ -43,11 +54,12 @@ public class ProductMapper {
                 .active(product.getActive())
                 .originalPrice(product.getOriginalPrice())
                 .profite(product.getProfite())
+                .imageUrl(imageUrl)
                 .sellingPrice(sellingPrice)
                 .build();
     }
 
-    public static void updateEntityFromDto(ProductRequestDto dto, Product product) {
+    public void updateEntityFromDto(ProductRequestDto dto, Product product) {
         if (dto == null || product == null) {
             return;
         }

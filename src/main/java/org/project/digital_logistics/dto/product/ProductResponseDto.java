@@ -21,4 +21,5 @@ public class ProductResponseDto {
     private Long originalPrice;
     private BigDecimal profite;
     private BigDecimal sellingPrice;
+    private String imageUrl;
 }

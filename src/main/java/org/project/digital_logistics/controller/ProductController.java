@@ -10,8 +10,10 @@ import org.project.digital_logistics.service.PermissionService;
 import org.project.digital_logistics.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -123,5 +125,50 @@ public class ProductController {
         permissionService.requireAdmin(session);
         ApiResponse<Long> response = productService.countActiveProducts();
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<ProductResponseDto>> uploadProductImage(
+            @PathVariable Long id,
+            @RequestParam("image") MultipartFile imageFile,
+            HttpSession session) {
+
+        permissionService.requireAdmin(session);
+
+        if (imageFile.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>("Image file is required", null));
+        }
+
+        long maxSize = 5 * 1024 * 1024; // 5MB
+        if (imageFile.getSize() > maxSize) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>("Image file size exceeds 5MB limit", null));
+        }
+
+        String contentType = imageFile.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>("Only image files are allowed", null));
+        }
+
+        ApiResponse<ProductResponseDto> response = productService.updateProductImage(id, imageFile);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}/image")
+    public ResponseEntity<ApiResponse<ProductResponseDto>> deleteProductImage(
+            @PathVariable Long id,
+            HttpSession session) {
+
+        permissionService.requireAdmin(session);
+
+        try {
+            ApiResponse<ProductResponseDto> response = productService.deleteProductImage(id);
+            return ResponseEntity.ok(response);
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(ex.getMessage(), null));
+        }
     }
 }

@@ -32,13 +32,14 @@ services:
       - postgres
     restart: unless-stopped
 
+  # Jenkins
   jenkins:
     image: jenkins/jenkins:lts-jdk17
     container_name: my-jenkins
     privileged: true
     user: root
     ports:
-      - "8080:8080"
+      - "9090:8080"      # ✅ Changed: 9090 (host) → 8080 (container)
       - "50000:50000"
     volumes:
       - jenkins_home:/var/jenkins_home
