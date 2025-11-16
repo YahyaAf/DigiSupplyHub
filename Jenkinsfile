@@ -38,8 +38,23 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Remplace 192.168.1.100 par ton IP réelle
-                    sh 'mvn sonar:sonar -Dsonar.projectKey=digital-logistics -Dsonar.projectName=digital-logistics -Dsonar.host.url=http://192.168.1.100:9000 -Dsonar.token=sqp_f995d0632d6a880ddd01a53e7e1500500ebb606a'
+                    // Essaie d'abord host.docker.internal, puis l'IP
+                    sh '''
+                        echo "Trying host.docker.internal..."
+                        mvn sonar:sonar \
+                          -Dsonar.projectKey=digital-logistics \
+                          -Dsonar.projectName=digital-logistics \
+                          -Dsonar.host.url=http://host.docker.internal:9000 \
+                          -Dsonar.token=sqp_f995d0632d6a880ddd01a53e7e1500500ebb606a \
+                        || (
+                          echo "First method failed, trying with IP..."
+                          mvn sonar:sonar \
+                            -Dsonar.projectKey=digital-logistics \
+                            -Dsonar.projectName=digital-logistics \
+                            -Dsonar.host.url=http://192.168.1.100:9000 \
+                            -Dsonar.token=sqp_f995d0632d6a880ddd01a53e7e1500500ebb606a
+                        )
+                    '''
                 }
             }
         }
