@@ -38,7 +38,8 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    sh "mvn sonar:sonar -Dsonar.projectKey=digital-logistics -Dsonar.projectName=digital-logistics -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.token=${SONAR_TOKEN}"
+                    // Remplace 192.168.1.100 par ton IP réelle
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=digital-logistics -Dsonar.projectName=digital-logistics -Dsonar.host.url=http://192.168.1.100:9000 -Dsonar.token=sqp_f995d0632d6a880ddd01a53e7e1500500ebb606a'
                 }
             }
         }
