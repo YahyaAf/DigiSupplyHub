@@ -38,7 +38,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Essaie d'abord host.docker.internal, puis l'IP
+                    // Essaie d'abord host.docker.internal, puis l'IPs
                     sh '''
                         echo "Trying host.docker.internal..."
                         mvn sonar:sonar \
