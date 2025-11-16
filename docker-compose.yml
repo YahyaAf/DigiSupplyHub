@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
+  # PostgreSQL Database (partagée)
   postgres:
     image: postgres:15-alpine
     container_name: my-postgres-db
@@ -56,21 +56,24 @@ services:
     environment:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
 
-  # SonarQube
+  # SonarQube (utilise la même base)
   sonarqube:
     image: sonarqube:community
     container_name: my-sonarqube
-    environment:
-      SONAR_JDBC_URL: jdbc:postgresql://postgres:5432/digitalLogistics
-      SONAR_JDBC_USERNAME: admin
-      SONAR_JDBC_PASSWORD: admin123
-      SONAR_WEB_JAVAOPTS: "-Xmx512m -Xms128m -XX:+HeapDumpOnOutOfMemoryError"
-      SONAR_CE_JAVAOPTS: "-Xmx512m -Xms128m"
-    ports:
-      - "9000:9000"
     depends_on:
       postgres:
         condition: service_healthy
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://postgres:5432/sonar
+      SONAR_JDBC_USERNAME: admin
+      SONAR_JDBC_PASSWORD: admin123
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    ports:
+      - "9000:9000"
     networks:
       - spring-network
     restart: unless-stopped
@@ -78,6 +81,9 @@ services:
 volumes:
   postgres_data:
   jenkins_home:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
 
 networks:
   spring-network:
