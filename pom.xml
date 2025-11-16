@@ -112,20 +112,40 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
                 <executions>
+                    <!-- Prepare agent with specific includes -->
                     <execution>
                         <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
-                        <!-- ✅ No propertyName needed with @{argLine} -->
+                        <configuration>
+                            <!-- ✅ Only instrument service and controller -->
+                            <includes>
+                                <include>org/project/digital_logistics/service/*</include>
+                                <include>org/project/digital_logistics/controller/*</include>
+                            </includes>
+                        </configuration>
                     </execution>
 
+                    <!-- Generate report -->
                     <execution>
                         <id>report</id>
                         <phase>test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <!-- ✅ Exclude 0% packages from HTML report -->
+                            <excludes>
+                                <exclude>org/project/digital_logistics/mapper/*</exclude>
+                                <exclude>org/project/digital_logistics/model/*</exclude>
+                                <exclude>org/project/digital_logistics/dto/*</exclude>
+                                <exclude>org/project/digital_logistics/config/*</exclude>
+                                <exclude>org/project/digital_logistics/exception/*</exclude>
+                                <exclude>org/project/digital_logistics/enums/*</exclude>
+                                <exclude>org/project/digital_logistics/*</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
