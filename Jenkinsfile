@@ -8,7 +8,12 @@ pipeline {
 
     environment {
         SONAR_HOST_URL = 'http://localhost:9000'
-        SONAR_TOKEN = credentials('sonar-token')  // Après création des credentials
+        SONAR_TOKEN = credentials('sonar-token')
+        // Ajouter les credentials AWS
+        AWS_ACCESS_KEY_ID = credentials('access-key')
+        AWS_SECRET_ACCESS_KEY = credentials('secretKey')
+        AWS_REGION = credentials('region')
+        S3_BUCKET = credentials('bucket')
     }
 
     stages {
@@ -26,7 +31,14 @@ pipeline {
 
         stage('Unit Tests & Coverage') {
             steps {
-                sh 'mvn test jacoco:report'
+                // Passer les variables AWS aux tests
+                sh '''
+                    mvn test jacoco:report \
+                    -Daws.accessKeyId=$AWS_ACCESS_KEY_ID \
+                    -Daws.secretKey=$AWS_SECRET_ACCESS_KEY \
+                    -Daws.region=$AWS_REGION \
+                    -Daws.s3.bucket-name=$S3_BUCKET
+                '''
             }
             post {
                 always {
@@ -38,21 +50,20 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Essaie d'abord host.docker.internal, puis l'IPs
                     sh '''
                         echo "Trying host.docker.internal..."
                         mvn sonar:sonar \
                           -Dsonar.projectKey=digital-logistics \
                           -Dsonar.projectName=digital-logistics \
                           -Dsonar.host.url=http://host.docker.internal:9000 \
-                          -Dsonar.token=sqp_f995d0632d6a880ddd01a53e7e1500500ebb606a \
+                          -Dsonar.token=$SONAR_TOKEN \
                         || (
                           echo "First method failed, trying with IP..."
                           mvn sonar:sonar \
                             -Dsonar.projectKey=digital-logistics \
                             -Dsonar.projectName=digital-logistics \
                             -Dsonar.host.url=http://192.168.1.100:9000 \
-                            -Dsonar.token=sqp_f995d0632d6a880ddd01a53e7e1500500ebb606a
+                            -Dsonar.token=$SONAR_TOKEN
                         )
                     '''
                 }
