@@ -31,13 +31,13 @@ pipeline {
 
         stage('Unit Tests & Coverage') {
             steps {
-                // Passer les variables AWS aux tests
                 sh '''
                     mvn test jacoco:report \
                     -Daws.accessKeyId=$AWS_ACCESS_KEY_ID \
                     -Daws.secretKey=$AWS_SECRET_ACCESS_KEY \
                     -Daws.region=$AWS_REGION \
-                    -Daws.s3.bucket-name=$S3_BUCKET
+                    -Daws.s3.bucket-name=$S3_BUCKET \
+                    -Daws.s3.bucket=$S3_BUCKET  # ← Ajouter cette ligne
                 '''
             }
             post {
