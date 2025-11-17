@@ -42,6 +42,9 @@ public class Product {
     @Column(length = 255)
     private String imageFilename;
 
+    @Column(length = 500)
+    private String imageS3Url;
+
     @Override
     public String toString() {
         return "Product{" +

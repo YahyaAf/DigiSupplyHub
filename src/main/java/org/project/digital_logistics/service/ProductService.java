@@ -22,15 +22,18 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final FileStorageService fileStorageService;
+    private final S3Service s3Service;
 
     @Autowired
     public ProductService(
             ProductRepository productRepository,
             ProductMapper productMapper,
-            FileStorageService fileStorageService) {
+            FileStorageService fileStorageService,
+            S3Service s3Service) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.fileStorageService = fileStorageService;
+        this.s3Service = s3Service;
     }
 
     @Transactional
@@ -160,6 +163,23 @@ public class ProductService {
 
         ProductResponseDto responseDto = productMapper.toResponseDto(savedProduct);
         return new ApiResponse<>("Product image deleted successfully", responseDto);
+    }
+
+    @Transactional
+    public ApiResponse<ProductResponseDto> updateProductImageS3(Long id, MultipartFile imageFile) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", id));
+
+        // Upload to S3
+        String s3Url = s3Service.uploadFile(imageFile);
+
+        // Save S3 URL in database
+        product.setImageS3Url(s3Url);
+
+        Product savedProduct = productRepository.save(product);
+        ProductResponseDto responseDto = productMapper.toResponseDto(savedProduct);
+
+        return new ApiResponse<>("Product image uploaded to S3 successfully", responseDto);
     }
 
 }

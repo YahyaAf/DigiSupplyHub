@@ -22,4 +22,5 @@ public class ProductResponseDto {
     private BigDecimal profite;
     private BigDecimal sellingPrice;
     private String imageUrl;
+    private String imageS3Url;
 }

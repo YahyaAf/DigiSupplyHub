@@ -44,4 +44,5 @@ public class ProductRequestDto {
             message = "Image must be a valid URL ending with jpg, jpeg, png, gif, webp, or svg"
     )
     private String image;
+    private String imageS3;
 }

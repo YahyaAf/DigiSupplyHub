@@ -178,6 +178,18 @@ public class ProductController {
         }
     }
 
+    @PostMapping(
+            value = "/{id}/image/s3",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<ApiResponse<ProductResponseDto>> uploadProductImageS3(
+            @PathVariable Long id,
+            @RequestParam("image") MultipartFile imageFile
+    ) {
+        ApiResponse<ProductResponseDto> response = productService.updateProductImageS3(id, imageFile);
+        return ResponseEntity.ok(response);
+    }
+
 
     @PostMapping("/S3")
     public ResponseEntity<HashMap<String , Object>> uploadS3(@RequestParam("file") MultipartFile file){

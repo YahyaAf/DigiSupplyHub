@@ -55,6 +55,7 @@ public class ProductMapper {
                 .originalPrice(product.getOriginalPrice())
                 .profite(product.getProfite())
                 .imageUrl(imageUrl)
+                .imageS3Url(product.getImageS3Url())
                 .sellingPrice(sellingPrice)
                 .build();
     }
