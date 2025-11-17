@@ -8,6 +8,7 @@ import org.project.digital_logistics.dto.product.ProductRequestDto;
 import org.project.digital_logistics.dto.product.ProductResponseDto;
 import org.project.digital_logistics.service.PermissionService;
 import org.project.digital_logistics.service.ProductService;
+import org.project.digital_logistics.service.S3Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -25,11 +27,13 @@ public class ProductController {
 
     private final ProductService productService;
     private final PermissionService permissionService;
+    private final S3Service s3Service;
 
     @Autowired
-    public ProductController(ProductService productService, PermissionService permissionService) {
+    public ProductController(ProductService productService, PermissionService permissionService, S3Service s3Service) {
         this.productService = productService;
         this.permissionService = permissionService;
+        this.s3Service = s3Service;
     }
 
     @PostMapping
@@ -156,6 +160,8 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+
+
     @DeleteMapping("/{id}/image")
     public ResponseEntity<ApiResponse<ProductResponseDto>> deleteProductImage(
             @PathVariable Long id,
@@ -170,5 +176,14 @@ public class ProductController {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse<>(ex.getMessage(), null));
         }
+    }
+
+
+    @PostMapping("/S3")
+    public ResponseEntity<HashMap<String , Object>> uploadS3(@RequestParam("file") MultipartFile file){
+        String url = s3Service.uploadFile(file);
+        HashMap<String , Object> response = new HashMap<>();
+        response.put("File Url",url);
+        return ResponseEntity.ok(response);
     }
 }
