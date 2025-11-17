@@ -48,27 +48,39 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            steps {
-                script {
-                    sh '''
-                        echo "Trying host.docker.internal..."
-                        mvn sonar:sonar \
-                          -Dsonar.projectKey=digital-logistics \
-                          -Dsonar.projectName=digital-logistics \
-                          -Dsonar.host.url=http://host.docker.internal:9000 \
-                          -Dsonar.token=$SONAR_TOKEN \
-                        || (
-                          echo "First method failed, trying with IP..."
-                          mvn sonar:sonar \
-                            -Dsonar.projectKey=digital-logistics \
-                            -Dsonar.projectName=digital-logistics \
-                            -Dsonar.host.url=http://192.168.1.100:9000 \
-                            -Dsonar.token=$SONAR_TOKEN
-                        )
-                    '''
+                    steps {
+                        script {
+                            // Méthode 1 : Configuration SonarQube Jenkins
+                            withSonarQubeEnv('sonar-qube') {
+                                sh """
+                                    mvn sonar:sonar \
+                                    -Dsonar.projectKey=digital-logistics \
+                                    -Dsonar.projectName=digital-logistics
+                                """
+                            }
+
+                            // OU Méthode 2 : Essais séquentiels manuels
+                            sh """
+                                # Essai avec host.docker.internal
+                                mvn sonar:sonar \
+                                  -Dsonar.projectKey=digital-logistics \
+                                  -Dsonar.projectName=digital-logistics \
+                                  -Dsonar.host.url=http://host.docker.internal:9000 \
+                                  -Dsonar.token=$SONAR_TOKEN \
+                                || echo "First method failed"
+                            """
+
+                            // Si la première méthode échoue, essayer avec IP
+                            sh """
+                                mvn sonar:sonar \
+                                  -Dsonar.projectKey=digital-logistics \
+                                  -Dsonar.projectName=digital-logistics \
+                                  -Dsonar.host.url=http://192.168.1.100:9000 \
+                                  -Dsonar.token=$SONAR_TOKEN
+                            """
+                        }
+                    }
                 }
-            }
-        }
 
         stage('Package') {
             steps {
