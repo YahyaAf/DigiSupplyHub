@@ -173,7 +173,7 @@ public class ProductService {
         // Upload to S3
         String s3Url = s3Service.uploadFile(imageFile);
 
-        // Save S3 URL in database
+        // Save S3 URL in d2atabase
         product.setImageS3Url(s3Url);
 
         Product savedProduct = productRepository.save(product);

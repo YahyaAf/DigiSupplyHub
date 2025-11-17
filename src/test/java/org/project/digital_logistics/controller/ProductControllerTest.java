@@ -3,6 +3,7 @@ package org.project.digital_logistics.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.project.digital_logistics.service.S3Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -41,6 +42,9 @@ class ProductControllerTest {
 
     @MockBean
     private PermissionService permissionService;
+
+    @MockBean
+    private S3Service s3Service;
 
     private MockHttpSession session;
     private ProductRequestDto requestDto;
