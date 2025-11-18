@@ -7,8 +7,9 @@ pipeline {
     }
 
     environment {
-        SONAR_HOST_URL = 'http://localhost:9000'
-        SONAR_TOKEN = credentials('sonar-token')
+        // CORRECTION: Utiliser le nom du service Docker au lieu de localhost
+        SONAR_HOST_URL = 'http://my-sonarqube:9000'
+        // SUPPRIMER: SONAR_TOKEN = credentials('sonar-token') ← Enlever cette ligne
         AWS_ACCESS_KEY_ID = credentials('access-key')
         AWS_SECRET_ACCESS_KEY = credentials('secretKey')
         AWS_REGION = credentials('region')
@@ -35,8 +36,8 @@ pipeline {
                     -Daws.accessKeyId=$AWS_ACCESS_KEY_ID \
                     -Daws.secretKey=$AWS_SECRET_ACCESS_KEY \
                     -Daws.region=$AWS_REGION \
-                    -Daws.s3.bucket-name=$S3_BUCKET \
-                    -Daws.s3.bucket=$S3_BUCKET  # ← Ajouter cette ligne
+                    -Daws.s3.bucket-name=$S3_BUCKET
+                    # SUPPRIMER: -Daws.s3.bucket=$S3_BUCKET ← Doublon
                 '''
             }
             post {
@@ -55,7 +56,7 @@ pipeline {
                          -Dsonar.projectName=digital-logistics \\
                          -Dsonar.host.url=http://my-sonarqube:9000 \\
                          -Dsonar.token=$REAL_SONAR_TOKEN
-                      """
+                   """
                 }
             }
         }
