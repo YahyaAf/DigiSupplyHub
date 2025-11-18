@@ -36,6 +36,9 @@ class ProductServiceTest {
     private ProductMapper productMapper;
 
     @Mock
+    private S3Service s3Service;
+
+    @Mock
     private FileStorageService fileStorageService;
 
     @InjectMocks
@@ -494,5 +497,148 @@ class ProductServiceTest {
         verify(productRepository).findById(1L);
         verify(fileStorageService, never()).deleteFile(anyString());
         verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void updateProductImageS3_Success() {
+        // Given
+        Long productId = 1L;
+        MockMultipartFile imageFile = new MockMultipartFile(
+                "image",
+                "product-image.jpg",
+                "image/jpeg",
+                "test image content".getBytes()
+        );
+
+        String s3Url = "https://s3.amazonaws.com/bucket/product-image.jpg";
+
+        Product product = Product.builder()
+                .id(productId)
+                .sku("PROD-001")
+                .name("Test Product")
+                .imageS3Url(null) // Pas d'image S3 au début
+                .build();
+
+        Product savedProduct = Product.builder()
+                .id(productId)
+                .sku("PROD-001")
+                .name("Test Product")
+                .imageS3Url(s3Url) // Avec l'URL S3 après sauvegarde
+                .build();
+
+        ProductResponseDto responseDto = ProductResponseDto.builder()
+                .id(productId)
+                .sku("PROD-001")
+                .name("Test Product")
+                .imageS3Url(s3Url)
+                .build();
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(s3Service.uploadFile(imageFile)).thenReturn(s3Url);
+        when(productRepository.save(product)).thenReturn(savedProduct);
+        when(productMapper.toResponseDto(savedProduct)).thenReturn(responseDto);
+
+        // When
+        ApiResponse<ProductResponseDto> response = productService.updateProductImageS3(productId, imageFile);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Product image uploaded to S3 successfully", response.getMessage());
+        assertNotNull(response.getData());
+        assertEquals(s3Url, response.getData().getImageS3Url());
+
+        // Vérifie que l'URL S3 a été mise à jour dans l'entité
+        assertEquals(s3Url, product.getImageS3Url());
+
+        verify(productRepository).findById(productId);
+        verify(s3Service).uploadFile(imageFile);
+        verify(productRepository).save(product);
+        verify(productMapper).toResponseDto(savedProduct);
+    }
+
+    @Test
+    void updateProductImageS3_ProductNotFound_ThrowsException() {
+        // Given
+        Long productId = 999L;
+        MockMultipartFile imageFile = new MockMultipartFile(
+                "image",
+                "product-image.jpg",
+                "image/jpeg",
+                "test image content".getBytes()
+        );
+
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+
+        // When & Then
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> productService.updateProductImageS3(productId, imageFile)
+        );
+
+        assertTrue(exception.getMessage().contains("Product"));
+        assertTrue(exception.getMessage().contains("id"));
+        assertTrue(exception.getMessage().contains("999"));
+
+        verify(productRepository).findById(productId);
+        verify(s3Service, never()).uploadFile(any());
+        verify(productRepository, never()).save(any());
+        verify(productMapper, never()).toResponseDto(any());
+    }
+
+    @Test
+    void updateProductImageS3_OverwritesExistingS3Image() {
+        // Given
+        Long productId = 1L;
+        MockMultipartFile imageFile = new MockMultipartFile(
+                "image",
+                "new-image.jpg",
+                "image/jpeg",
+                "new image content".getBytes()
+        );
+
+        String oldS3Url = "https://s3.amazonaws.com/bucket/old-image.jpg";
+        String newS3Url = "https://s3.amazonaws.com/bucket/new-image.jpg";
+
+        Product product = Product.builder()
+                .id(productId)
+                .sku("PROD-001")
+                .name("Test Product")
+                .imageS3Url(oldS3Url) // Déjà une image S3 existante
+                .build();
+
+        Product savedProduct = Product.builder()
+                .id(productId)
+                .sku("PROD-001")
+                .name("Test Product")
+                .imageS3Url(newS3Url) // Nouvelle URL S3
+                .build();
+
+        ProductResponseDto responseDto = ProductResponseDto.builder()
+                .id(productId)
+                .sku("PROD-001")
+                .name("Test Product")
+                .imageS3Url(newS3Url)
+                .build();
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(s3Service.uploadFile(imageFile)).thenReturn(newS3Url);
+        when(productRepository.save(product)).thenReturn(savedProduct);
+        when(productMapper.toResponseDto(savedProduct)).thenReturn(responseDto);
+
+        // When
+        ApiResponse<ProductResponseDto> response = productService.updateProductImageS3(productId, imageFile);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Product image uploaded to S3 successfully", response.getMessage());
+        assertEquals(newS3Url, response.getData().getImageS3Url());
+
+        // Vérifie que l'ancienne URL a été remplacée
+        assertEquals(newS3Url, product.getImageS3Url());
+
+        verify(productRepository).findById(productId);
+        verify(s3Service).uploadFile(imageFile);
+        verify(productRepository).save(product);
+        verify(productMapper).toResponseDto(savedProduct);
     }
 }

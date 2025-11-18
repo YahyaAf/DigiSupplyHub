@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
@@ -472,5 +473,152 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.message").value("Product has no image to delete"));
 
         verify(productService).deleteProductImage(1L);
+    }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// S3 IMAGE UPLOAD TESTS - VERSION CORRIGÉE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    @Test
+    void uploadProductImageS3_ValidImage_ReturnsOk() throws Exception {
+        // Given
+        MockMultipartFile imageFile = new MockMultipartFile(
+                "image",
+                "product-s3.jpg",
+                "image/jpeg",
+                "test s3 image content".getBytes()
+        );
+
+        ProductResponseDto s3ResponseDto = ProductResponseDto.builder()
+                .id(1L)
+                .sku("PROD-001")
+                .name("Test Product")
+                .imageS3Url("https://s3.amazonaws.com/bucket/product-s3.jpg")
+                .build();
+
+        ApiResponse<ProductResponseDto> apiResponse = new ApiResponse<>(
+                "Product image uploaded to S3 successfully",
+                s3ResponseDto
+        );
+
+        doNothing().when(permissionService).requireAdmin(any());
+        when(productService.updateProductImageS3(eq(1L), any(MultipartFile.class)))
+                .thenReturn(apiResponse);
+
+        // When & Then
+        mockMvc.perform(multipart("/api/products/{id}/image/s3", 1L)
+                        .file(imageFile)
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Product image uploaded to S3 successfully"))
+                .andExpect(jsonPath("$.data.imageS3Url").value("https://s3.amazonaws.com/bucket/product-s3.jpg"));
+
+        verify(permissionService).requireAdmin(any());
+        verify(productService).updateProductImageS3(eq(1L), any(MultipartFile.class));
+    }
+
+    @Test
+    void uploadProductImageS3_ProductNotFound_ReturnsNotFound() throws Exception {
+        // Given
+        MockMultipartFile imageFile = new MockMultipartFile(
+                "image",
+                "product-s3.jpg",
+                "image/jpeg",
+                "test content".getBytes()
+        );
+
+        doNothing().when(permissionService).requireAdmin(any());
+        when(productService.updateProductImageS3(eq(999L), any(MultipartFile.class)))
+                .thenThrow(new ResourceNotFoundException("Product", "id", 999L));
+
+        // When & Then
+        mockMvc.perform(multipart("/api/products/{id}/image/s3", 999L)
+                        .file(imageFile)
+                        .session(session))
+                .andExpect(status().isNotFound());
+
+        verify(permissionService).requireAdmin(any());
+        verify(productService).updateProductImageS3(eq(999L), any(MultipartFile.class));
+    }
+
+// SUPPRIMEZ ces tests car la validation n'existe pas dans votre controller :
+// - uploadProductImageS3_EmptyFile_ReturnsBadRequest()
+// - uploadProductImageS3_FileTooLarge_ReturnsBadRequest()
+// - uploadProductImageS3_InvalidFileType_ReturnsBadRequest()
+
+    @Test
+    void uploadProductImageS3_AsNonAdmin_ReturnsForbidden() throws Exception {
+        // Given
+        MockMultipartFile imageFile = new MockMultipartFile(
+                "image",
+                "product-s3.jpg",
+                "image/jpeg",
+                "test content".getBytes()
+        );
+
+        doThrow(new AccessDeniedException("Access denied"))
+                .when(permissionService).requireAdmin(any());
+
+        // When & Then
+        mockMvc.perform(multipart("/api/products/{id}/image/s3", 1L)
+                        .file(imageFile)
+                        .session(session))
+                .andExpect(status().isForbidden());
+
+        verify(productService, never()).updateProductImageS3(anyLong(), any());
+    }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DIRECT S3 UPLOAD TESTS - VERSION CORRIGÉE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    @Test
+    void uploadS3_ValidFile_ReturnsOk() throws Exception {
+        // Given
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "document.pdf",
+                "application/pdf",
+                "test file content".getBytes()
+        );
+
+        String s3Url = "https://s3.amazonaws.com/bucket/document.pdf";
+        when(s3Service.uploadFile(file)).thenReturn(s3Url);
+
+        // When & Then
+        mockMvc.perform(multipart("/api/products/S3")
+                        .file(file)
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$['File Url']").value(s3Url)); // ✅ CORRECTION ICI
+
+        verify(s3Service).uploadFile(file);
+    }
+
+// SUPPRIMEZ ces tests car la validation n'existe pas :
+// - uploadS3_EmptyFile_ReturnsBadRequest()
+// - uploadS3_FileTooLarge_ReturnsBadRequest()
+
+    @Test
+    void uploadS3_S3ServiceError_ReturnsInternalServerError() throws Exception {
+        // Given
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "test.pdf",
+                "application/pdf",
+                "test content".getBytes()
+        );
+
+        when(s3Service.uploadFile(file))
+                .thenThrow(new RuntimeException("S3 service unavailable"));
+
+        // When & Then
+        mockMvc.perform(multipart("/api/products/S3")
+                        .file(file)
+                        .session(session))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Failed to upload file to S3: S3 service unavailable"));
+
+        verify(s3Service).uploadFile(file);
     }
 }

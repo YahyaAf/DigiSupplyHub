@@ -160,8 +160,6 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-
-
     @DeleteMapping("/{id}/image")
     public ResponseEntity<ApiResponse<ProductResponseDto>> deleteProductImage(
             @PathVariable Long id,
@@ -184,18 +182,32 @@ public class ProductController {
     )
     public ResponseEntity<ApiResponse<ProductResponseDto>> uploadProductImageS3(
             @PathVariable Long id,
-            @RequestParam("image") MultipartFile imageFile
-    ) {
+            @RequestParam("image") MultipartFile imageFile,
+            HttpSession session) { // ← Ajouter HttpSession
+
+        permissionService.requireAdmin(session); // ← Ajouter cette ligne
+
         ApiResponse<ProductResponseDto> response = productService.updateProductImageS3(id, imageFile);
         return ResponseEntity.ok(response);
     }
 
-
     @PostMapping("/S3")
-    public ResponseEntity<HashMap<String , Object>> uploadS3(@RequestParam("file") MultipartFile file){
-        String url = s3Service.uploadFile(file);
-        HashMap<String , Object> response = new HashMap<>();
-        response.put("File Url",url);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<HashMap<String, Object>> uploadS3(
+            @RequestParam("file") MultipartFile file,
+            HttpSession session) {
+
+        permissionService.requireAdmin(session);
+
+        try {
+            String url = s3Service.uploadFile(file);
+            HashMap<String, Object> response = new HashMap<>();
+            response.put("File Url", url);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // Gestion d'erreur
+            HashMap<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Failed to upload file to S3: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
     }
 }
