@@ -46,16 +46,17 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('Debug SonarQube Token') {
             steps {
                 script {
-                    sh """
-                        mvn sonar:sonar \\
-                          -Dsonar.projectKey=digital-logistics \\
-                          -Dsonar.projectName=digital-logistics \\
-                          -Dsonar.host.url=http://my-sonarqube:9000 \\  # ← Changement ici
-                          -Dsonar.token=$SONAR_TOKEN
-                    """
+                    // Afficher des informations de debug (attention: ne faites pas ça en production)
+                    echo "SONAR_TOKEN length: ${SONAR_TOKEN.length()}"
+                    echo "SONAR_TOKEN starts with: ${SONAR_TOKEN.substring(0, 5)}..."
+
+                    // Tester la connexion avec le token
+                    sh '''
+                        curl -u "$SONAR_TOKEN": "http://my-sonarqube:9000/api/system/status"
+                    '''
                 }
             }
         }
