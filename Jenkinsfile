@@ -46,17 +46,16 @@ pipeline {
             }
         }
 
-        stage('Debug Credential Type') {
+        stage('SonarQube Analysis') {
             steps {
-                script {
-                    // Ceci va afficher ce qui est vraiment stocké
-                    sh '''
-                        echo "=== Debug Credential ==="
-                        echo "SONAR_TOKEN: $SONAR_TOKEN"
-
-                        # Si ça affiche "sonar-token" c'est le problème
-                        # Si ça affiche "sqp_..." c'est bon
-                    '''
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'REAL_SONAR_TOKEN')]) {
+                   sh """
+                      mvn sonar:sonar \\
+                         -Dsonar.projectKey=digital-logistics \\
+                         -Dsonar.projectName=digital-logistics \\
+                         -Dsonar.host.url=http://my-sonarqube:9000 \\
+                         -Dsonar.token=$REAL_SONAR_TOKEN
+                      """
                 }
             }
         }
