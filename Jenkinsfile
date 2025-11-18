@@ -16,25 +16,6 @@ pipeline {
     }
 
     stages {
-        stage('Check AWS CLI') {
-            steps {
-                script {
-                    try {
-                        sh 'aws --version'
-                        echo "✅ AWS CLI est disponible"
-                    } catch (Exception e) {
-                        echo "⚠️ AWS CLI n'est pas installé, installation..."
-                        sh '''
-                            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-                            unzip awscliv2.zip
-                            sudo ./aws/install --update
-                            aws --version
-                        '''
-                    }
-                }
-            }
-        }
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -54,7 +35,8 @@ pipeline {
                     -Daws.accessKeyId=$AWS_ACCESS_KEY_ID \
                     -Daws.secretKey=$AWS_SECRET_ACCESS_KEY \
                     -Daws.region=$AWS_REGION \
-                    -Daws.s3.bucket-name=$S3_BUCKET
+                    -Daws.s3.bucket-name=$S3_BUCKET \
+                    -Daws.s3.bucket=$S3_BUCKET  # ← Ajouter cette ligne
                 '''
             }
             post {
@@ -82,19 +64,6 @@ pipeline {
             steps {
                 sh 'mvn package -DskipTests'
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            }
-        }
-
-        stage('Upload Artifact to S3') {
-            steps {
-                sh """
-                    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                    export AWS_DEFAULT_REGION=$AWS_REGION
-
-                    aws s3 cp target/Digital_Logistics-0.0.1-SNAPSHOT.jar \
-                       s3://$S3_BUCKET/artifacts/$BUILD_NUMBER/digital-logistics-$BUILD_NUMBER.jar
-                """
             }
         }
     }
