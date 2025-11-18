@@ -36,7 +36,7 @@ pipeline {
                     -Daws.secretKey=$AWS_SECRET_ACCESS_KEY \
                     -Daws.region=$AWS_REGION \
                     -Daws.s3.bucket-name=$S3_BUCKET \
-                    -Daws.s3.bucket=$S3_BUCKET
+                    -Daws.s3.bucket=$S3_BUCKET  # ← Ajouter cette ligne
                 '''
             }
             post {
@@ -60,22 +60,28 @@ pipeline {
             }
         }
 
+        stage('Upload Artifact to S3') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'access-key', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'secretKey', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    sh """
+                        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                        aws configure set region ${env.AWS_REGION}
+
+                        aws s3 cp target/Digital_Logistics-0.0.1-SNAPSHOT.jar \
+                           s3://${env.S3_BUCKET}/artifacts/${BUILD_NUMBER}/digital-logistics-${BUILD_NUMBER}.jar
+                    """
+                }
+            }
+        }
+
         stage('Package') {
             steps {
                 sh 'mvn package -DskipTests'
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            }
-        }
-
-        stage('Upload Artifact to S3') {
-            steps {
-                withAWS(credentials: 'aws-jenkins', region: env.AWS_REGION) {
-                    s3Upload(
-                        bucket: env.S3_BUCKET,
-                        path: "artifacts/${BUILD_NUMBER}/",
-                        file: "target/Digital_Logistics-0.0.1-SNAPSHOT.jar"
-                    )
-                }
             }
         }
     }
