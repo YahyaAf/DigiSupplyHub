@@ -9,7 +9,6 @@ pipeline {
     environment {
         SONAR_HOST_URL = 'http://localhost:9000'
         SONAR_TOKEN = credentials('sonar-token')
-        // Ajouter les credentials AWS
         AWS_ACCESS_KEY_ID = credentials('access-key')
         AWS_SECRET_ACCESS_KEY = credentials('secretKey')
         AWS_REGION = credentials('region')
