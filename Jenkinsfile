@@ -49,22 +49,13 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    sh '''
-                        echo "Trying host.docker.internal..."
-                        mvn sonar:sonar \
-                          -Dsonar.projectKey=digital-logistics \
-                          -Dsonar.projectName=digital-logistics \
-                          -Dsonar.host.url=http://host.docker.internal:9000 \
-                          -Dsonar.token=$SONAR_TOKEN \
-                        || (
-                          echo "First method failed, trying with IP..."
-                          mvn sonar:sonar \
-                            -Dsonar.projectKey=digital-logistics \
-                            -Dsonar.projectName=digital-logistics \
-                            -Dsonar.host.url=http://192.168.1.100:9000 \
-                            -Dsonar.token=$SONAR_TOKEN
-                        )
-                    '''
+                    sh """
+                        mvn sonar:sonar \\
+                          -Dsonar.projectKey=digital-logistics \\
+                          -Dsonar.projectName=digital-logistics \\
+                          -Dsonar.host.url=http://my-sonarqube:9000 \\  # ← Changement ici
+                          -Dsonar.token=$SONAR_TOKEN
+                    """
                 }
             }
         }
