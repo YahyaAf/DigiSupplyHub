@@ -67,13 +67,18 @@ pipeline {
             }
         }
 
-        stage('Upload to S3') {
-            steps {
-                sh """
-                   aws s3 cp target/digital-logistics-*.jar s3://$S3_BUCKET/artifacts/${BUILD_NUMBER}/ --region $AWS_REGION
-                """
-            }
-        }
+        stage('Upload Artifact to S3') {
+                    steps {
+                        withAWS(credentials: 'aws-jenkins', region: credentials('region')) {
+                            s3Upload(
+                                bucket: credentials('bucket'),
+                                path: "artifacts/${BUILD_NUMBER}/digital-logistics.jar",
+                                workingDir: "target",
+                                includePathPattern: "*.jar"
+                            )
+                        }
+                    }
+                }
     }
 
     post {
