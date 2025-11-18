@@ -66,6 +66,14 @@ pipeline {
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
+
+        stage('Upload to S3') {
+            steps {
+                sh """
+                   aws s3 cp target/digital-logistics-*.jar s3://$S3_BUCKET/artifacts/${BUILD_NUMBER}/ --region $AWS_REGION
+                """
+            }
+        }
     }
 
     post {
