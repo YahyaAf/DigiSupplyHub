@@ -46,16 +46,16 @@ pipeline {
             }
         }
 
-        stage('Debug SonarQube Token') {
+        stage('Debug Credential Type') {
             steps {
                 script {
-                    // Afficher des informations de debug (attention: ne faites pas ça en production)
-                    echo "SONAR_TOKEN length: ${SONAR_TOKEN.length()}"
-                    echo "SONAR_TOKEN starts with: ${SONAR_TOKEN.substring(0, 5)}..."
-
-                    // Tester la connexion avec le token
+                    // Ceci va afficher ce qui est vraiment stocké
                     sh '''
-                        curl -u "$SONAR_TOKEN": "http://my-sonarqube:9000/api/system/status"
+                        echo "=== Debug Credential ==="
+                        echo "SONAR_TOKEN: $SONAR_TOKEN"
+
+                        # Si ça affiche "sonar-token" c'est le problème
+                        # Si ça affiche "sqp_..." c'est bon
                     '''
                 }
             }
