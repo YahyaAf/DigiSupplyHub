@@ -36,7 +36,7 @@ pipeline {
                     -Daws.secretKey=$AWS_SECRET_ACCESS_KEY \
                     -Daws.region=$AWS_REGION \
                     -Daws.s3.bucket-name=$S3_BUCKET \
-                    -Daws.s3.bucket=$S3_BUCKET  # ← Ajouter cette ligne
+                    -Daws.s3.bucket=$S3_BUCKET
                 '''
             }
             post {
@@ -73,8 +73,7 @@ pipeline {
                     s3Upload(
                         bucket: env.S3_BUCKET,
                         path: "artifacts/${BUILD_NUMBER}/",
-                        file: "target/Digital_Logistics-0.0.1-SNAPSHOT.jar",
-                        workingDir: '.'
+                        file: "target/Digital_Logistics-0.0.1-SNAPSHOT.jar"
                     )
                 }
             }
