@@ -73,10 +73,10 @@ pipeline {
             echo "Build ${currentBuild.result} - ${env.JOB_NAME} #${env.BUILD_NUMBER}"
         }
         success {
-            echo 'Pipeline exécuté avec succès! 🎉'
+            echo 'Pipeline exécuté avec succès! '
         }
         failure {
-            echo 'Pipeline a échoué! ❌'
+            echo 'Pipeline a échoué! '
         }
     }
 }
