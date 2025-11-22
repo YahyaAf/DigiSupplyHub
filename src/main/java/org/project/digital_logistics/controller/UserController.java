@@ -65,7 +65,7 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserResponseDto>>> getAllUsers(HttpSession session) {
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
         ApiResponse<List<UserResponseDto>> response = userService.getAllUsers();
         return ResponseEntity.ok(response);
     }
