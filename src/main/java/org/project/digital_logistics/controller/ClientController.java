@@ -35,7 +35,7 @@ public class ClientController {
             @Valid @RequestBody ClientRequestDto requestDto,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<ClientResponseDto> response = clientService.createClient(requestDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -46,7 +46,7 @@ public class ClientController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<ClientResponseDto> response = clientService.getClientById(id);
         return ResponseEntity.ok(response);
@@ -57,7 +57,7 @@ public class ClientController {
             @PathVariable String email,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<ClientResponseDto> response = clientService.getClientByEmail(email);
         return ResponseEntity.ok(response);
@@ -68,7 +68,7 @@ public class ClientController {
             @PathVariable String phoneNumber,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<ClientResponseDto> response = clientService.getClientByPhoneNumber(phoneNumber);
         return ResponseEntity.ok(response);
@@ -76,7 +76,7 @@ public class ClientController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ClientResponseDto>>> getAllClients(HttpSession session) {
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
         ApiResponse<List<ClientResponseDto>> response = clientService.getAllClients();
         return ResponseEntity.ok(response);
     }
@@ -87,7 +87,7 @@ public class ClientController {
             @Valid @RequestBody ClientRequestDto requestDto,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<ClientResponseDto> response = clientService.updateClient(id, requestDto);
         return ResponseEntity.ok(response);
@@ -98,7 +98,7 @@ public class ClientController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<ClientResponseDto> response = clientService.deleteClient(id);
         return ResponseEntity.ok(response);
@@ -106,7 +106,7 @@ public class ClientController {
 
     @GetMapping("/count")
     public ResponseEntity<ApiResponse<Long>> countClients(HttpSession session) {
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
         ApiResponse<Long> response = clientService.countClients();
         return ResponseEntity.ok(response);
     }

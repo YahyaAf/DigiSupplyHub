@@ -56,7 +56,7 @@ public class SalesOrderController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<SalesOrderResponseDto> response = salesOrderService.getSalesOrderById(id);
         return ResponseEntity.ok(response);
@@ -66,7 +66,7 @@ public class SalesOrderController {
     public ResponseEntity<ApiResponse<List<SalesOrderResponseDto>>> getAllSalesOrders(
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<List<SalesOrderResponseDto>> response = salesOrderService.getAllSalesOrders();
         return ResponseEntity.ok(response);
@@ -92,7 +92,7 @@ public class SalesOrderController {
             @PathVariable OrderStatus status,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<List<SalesOrderResponseDto>> response = salesOrderService.getSalesOrdersByStatus(status);
         return ResponseEntity.ok(response);
@@ -103,7 +103,7 @@ public class SalesOrderController {
             @PathVariable Long clientId,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<List<SalesOrderResponseDto>> response = salesOrderService.getSalesOrdersByClient(clientId);
         return ResponseEntity.ok(response);
@@ -114,7 +114,7 @@ public class SalesOrderController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<SalesOrderResponseDto> response = salesOrderService.reserveStock(id);
         return ResponseEntity.ok(response);
@@ -125,7 +125,7 @@ public class SalesOrderController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<SalesOrderResponseDto> response = salesOrderService.shipOrder(id);
         return ResponseEntity.ok(response);
@@ -136,7 +136,7 @@ public class SalesOrderController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<SalesOrderResponseDto> response = salesOrderService.deliverOrder(id);
         return ResponseEntity.ok(response);
@@ -147,7 +147,7 @@ public class SalesOrderController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<SalesOrderResponseDto> response = salesOrderService.cancelOrder(id);
         return ResponseEntity.ok(response);
@@ -155,7 +155,7 @@ public class SalesOrderController {
 
     @GetMapping("/count")
     public ResponseEntity<ApiResponse<Long>> countSalesOrders(HttpSession session) {
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
         ApiResponse<Long> response = salesOrderService.countSalesOrders();
         return ResponseEntity.ok(response);
     }

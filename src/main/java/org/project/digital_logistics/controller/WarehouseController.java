@@ -35,7 +35,7 @@ public class WarehouseController {
             @Valid @RequestBody WarehouseRequestDto requestDto,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<WarehouseResponseDto> response = warehouseService.createWarehouse(requestDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -46,7 +46,7 @@ public class WarehouseController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<WarehouseResponseDto> response = warehouseService.getWarehouseById(id);
         return ResponseEntity.ok(response);
@@ -57,7 +57,7 @@ public class WarehouseController {
             @PathVariable String code,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<WarehouseResponseDto> response = warehouseService.getWarehouseByCode(code);
         return ResponseEntity.ok(response);
@@ -65,7 +65,7 @@ public class WarehouseController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<WarehouseResponseDto>>> getAllWarehouses(HttpSession session) {
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
         ApiResponse<List<WarehouseResponseDto>> response = warehouseService.getAllWarehouses();
         return ResponseEntity.ok(response);
     }
@@ -76,7 +76,7 @@ public class WarehouseController {
             @Valid @RequestBody WarehouseRequestDto requestDto,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<WarehouseResponseDto> response = warehouseService.updateWarehouse(id, requestDto);
         return ResponseEntity.ok(response);
@@ -87,7 +87,7 @@ public class WarehouseController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<Void> response = warehouseService.deleteWarehouse(id);
         return ResponseEntity.ok(response);
@@ -95,7 +95,7 @@ public class WarehouseController {
 
     @GetMapping("/count")
     public ResponseEntity<ApiResponse<Long>> countWarehouses(HttpSession session) {
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
         ApiResponse<Long> response = warehouseService.countWarehouses();
         return ResponseEntity.ok(response);
     }

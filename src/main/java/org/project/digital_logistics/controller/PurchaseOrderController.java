@@ -37,7 +37,7 @@ public class PurchaseOrderController {
             @Valid @RequestBody PurchaseOrderRequestDto requestDto,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<PurchaseOrderResponseDto> response = purchaseOrderService.createPurchaseOrder(requestDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -48,7 +48,7 @@ public class PurchaseOrderController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<PurchaseOrderResponseDto> response = purchaseOrderService.getPurchaseOrderById(id);
         return ResponseEntity.ok(response);
@@ -58,7 +58,7 @@ public class PurchaseOrderController {
     public ResponseEntity<ApiResponse<List<PurchaseOrderResponseDto>>> getAllPurchaseOrders(
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<List<PurchaseOrderResponseDto>> response = purchaseOrderService.getAllPurchaseOrders();
         return ResponseEntity.ok(response);
@@ -69,7 +69,7 @@ public class PurchaseOrderController {
             @PathVariable PurchaseOrderStatus status,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<List<PurchaseOrderResponseDto>> response = purchaseOrderService.getPurchaseOrdersByStatus(status);
         return ResponseEntity.ok(response);
@@ -80,7 +80,7 @@ public class PurchaseOrderController {
             @PathVariable Long supplierId,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<List<PurchaseOrderResponseDto>> response = purchaseOrderService.getPurchaseOrdersBySupplier(supplierId);
         return ResponseEntity.ok(response);
@@ -92,7 +92,7 @@ public class PurchaseOrderController {
             @Valid @RequestBody PurchaseOrderRequestDto requestDto,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<PurchaseOrderResponseDto> response = purchaseOrderService.updatePurchaseOrder(id, requestDto);
         return ResponseEntity.ok(response);
@@ -103,7 +103,7 @@ public class PurchaseOrderController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<PurchaseOrderResponseDto> response = purchaseOrderService.approvePurchaseOrder(id);
         return ResponseEntity.ok(response);
@@ -115,7 +115,7 @@ public class PurchaseOrderController {
             @RequestParam Long warehouseId,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<PurchaseOrderResponseDto> response = purchaseOrderService.receivePurchaseOrder(id, warehouseId);
         return ResponseEntity.ok(response);
@@ -126,7 +126,7 @@ public class PurchaseOrderController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<PurchaseOrderResponseDto> response = purchaseOrderService.cancelPurchaseOrder(id);
         return ResponseEntity.ok(response);
@@ -137,7 +137,7 @@ public class PurchaseOrderController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<Void> response = purchaseOrderService.deletePurchaseOrder(id);
         return ResponseEntity.ok(response);
@@ -145,7 +145,7 @@ public class PurchaseOrderController {
 
     @GetMapping("/count")
     public ResponseEntity<ApiResponse<Long>> countPurchaseOrders(HttpSession session) {
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
         ApiResponse<Long> response = purchaseOrderService.countPurchaseOrders();
         return ResponseEntity.ok(response);
     }
@@ -155,7 +155,7 @@ public class PurchaseOrderController {
             @PathVariable PurchaseOrderStatus status,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<Long> response = purchaseOrderService.countPurchaseOrdersByStatus(status);
         return ResponseEntity.ok(response);

@@ -35,7 +35,7 @@ public class SupplierController {
             @Valid @RequestBody SupplierRequestDto requestDto,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<SupplierResponseDto> response = supplierService.createSupplier(requestDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -46,7 +46,7 @@ public class SupplierController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<SupplierResponseDto> response = supplierService.getSupplierById(id);
         return ResponseEntity.ok(response);
@@ -54,7 +54,7 @@ public class SupplierController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<SupplierResponseDto>>> getAllSuppliers(HttpSession session) {
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
         ApiResponse<List<SupplierResponseDto>> response = supplierService.getAllSuppliers();
         return ResponseEntity.ok(response);
     }
@@ -65,7 +65,7 @@ public class SupplierController {
             @Valid @RequestBody SupplierRequestDto requestDto,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<SupplierResponseDto> response = supplierService.updateSupplier(id, requestDto);
         return ResponseEntity.ok(response);
@@ -76,7 +76,7 @@ public class SupplierController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<Void> response = supplierService.deleteSupplier(id);
         return ResponseEntity.ok(response);
@@ -84,7 +84,7 @@ public class SupplierController {
 
     @GetMapping("/count")
     public ResponseEntity<ApiResponse<Long>> countSuppliers(HttpSession session) {
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
         ApiResponse<Long> response = supplierService.countSuppliers();
         return ResponseEntity.ok(response);
     }

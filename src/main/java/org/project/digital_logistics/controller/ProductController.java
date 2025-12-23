@@ -41,7 +41,7 @@ public class ProductController {
             @Valid @RequestBody ProductRequestDto requestDto,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<ProductResponseDto> response = productService.createProduct(requestDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -52,7 +52,7 @@ public class ProductController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<ProductResponseDto> response = productService.getProductById(id);
         return ResponseEntity.ok(response);
@@ -63,7 +63,7 @@ public class ProductController {
             @PathVariable String sku,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<ProductResponseDto> response = productService.getProductBySku(sku);
         return ResponseEntity.ok(response);
@@ -71,7 +71,7 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ProductResponseDto>>> getAllProducts(HttpSession session) {
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
         ApiResponse<List<ProductResponseDto>> response = productService.getAllProducts();
         return ResponseEntity.ok(response);
     }
@@ -81,7 +81,7 @@ public class ProductController {
             @PathVariable String category,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<List<ProductResponseDto>> response = productService.getProductsByCategory(category);
         return ResponseEntity.ok(response);
@@ -89,7 +89,7 @@ public class ProductController {
 
     @GetMapping("/active")
     public ResponseEntity<ApiResponse<List<ProductResponseDto>>> getActiveProducts(HttpSession session) {
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
         ApiResponse<List<ProductResponseDto>> response = productService.getActiveProducts();
         return ResponseEntity.ok(response);
     }
@@ -100,7 +100,7 @@ public class ProductController {
             @Valid @RequestBody ProductRequestDto requestDto,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<ProductResponseDto> response = productService.updateProduct(id, requestDto);
         return ResponseEntity.ok(response);
@@ -111,7 +111,7 @@ public class ProductController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<Void> response = productService.deleteProduct(id);
         return ResponseEntity.ok(response);
@@ -119,14 +119,14 @@ public class ProductController {
 
     @GetMapping("/count")
     public ResponseEntity<ApiResponse<Long>> countProducts(HttpSession session) {
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
         ApiResponse<Long> response = productService.countProducts();
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/count/active")
     public ResponseEntity<ApiResponse<Long>> countActiveProducts(HttpSession session) {
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
         ApiResponse<Long> response = productService.countActiveProducts();
         return ResponseEntity.ok(response);
     }
@@ -137,7 +137,7 @@ public class ProductController {
             @RequestParam("image") MultipartFile imageFile,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         if (imageFile.isEmpty()) {
             return ResponseEntity.badRequest()
@@ -165,7 +165,7 @@ public class ProductController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         try {
             ApiResponse<ProductResponseDto> response = productService.deleteProductImage(id);
@@ -185,7 +185,7 @@ public class ProductController {
             @RequestParam("image") MultipartFile imageFile,
             HttpSession session) { // ← Ajouter HttpSession
 
-        permissionService.requireAdmin(session); // ← Ajouter cette ligne
+//        permissionService.requireAdmin(session); // ← Ajouter cette ligne
 
         ApiResponse<ProductResponseDto> response = productService.updateProductImageS3(id, imageFile);
         return ResponseEntity.ok(response);
@@ -196,7 +196,7 @@ public class ProductController {
             @RequestParam("file") MultipartFile file,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         try {
             String url = s3Service.uploadFile(file);

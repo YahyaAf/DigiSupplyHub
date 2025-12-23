@@ -35,7 +35,7 @@ public class ShipmentController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<ShipmentResponseDto> response = shipmentService.getShipmentById(id);
         return ResponseEntity.ok(response);
@@ -46,7 +46,7 @@ public class ShipmentController {
             @PathVariable Long salesOrderId,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<ShipmentResponseDto> response = shipmentService.getShipmentBySalesOrder(salesOrderId);
         return ResponseEntity.ok(response);
@@ -57,7 +57,7 @@ public class ShipmentController {
             @PathVariable String trackingNumber,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<ShipmentResponseDto> response = shipmentService.getShipmentByTrackingNumber(trackingNumber);
         return ResponseEntity.ok(response);
@@ -65,7 +65,7 @@ public class ShipmentController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ShipmentResponseDto>>> getAllShipments(HttpSession session) {
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
         ApiResponse<List<ShipmentResponseDto>> response = shipmentService.getAllShipments();
         return ResponseEntity.ok(response);
     }
@@ -75,7 +75,7 @@ public class ShipmentController {
             @PathVariable ShipmentStatus status,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<List<ShipmentResponseDto>> response = shipmentService.getShipmentsByStatus(status);
         return ResponseEntity.ok(response);
@@ -86,7 +86,7 @@ public class ShipmentController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<ShipmentResponseDto> response = shipmentService.markAsInTransit(id);
         return ResponseEntity.ok(response);
@@ -97,7 +97,7 @@ public class ShipmentController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<ShipmentResponseDto> response = shipmentService.markAsDelivered(id);
         return ResponseEntity.ok(response);
@@ -109,7 +109,7 @@ public class ShipmentController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime plannedDate,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<ShipmentResponseDto> response = shipmentService.updatePlannedDate(id, plannedDate);
         return ResponseEntity.ok(response);
@@ -120,7 +120,7 @@ public class ShipmentController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<Void> response = shipmentService.deleteShipment(id);
         return ResponseEntity.ok(response);
@@ -128,7 +128,7 @@ public class ShipmentController {
 
     @GetMapping("/count")
     public ResponseEntity<ApiResponse<Long>> countShipments(HttpSession session) {
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
         ApiResponse<Long> response = shipmentService.countShipments();
         return ResponseEntity.ok(response);
     }
@@ -138,7 +138,7 @@ public class ShipmentController {
             @PathVariable ShipmentStatus status,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<Long> response = shipmentService.countShipmentsByStatus(status);
         return ResponseEntity.ok(response);

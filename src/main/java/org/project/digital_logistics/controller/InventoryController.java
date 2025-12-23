@@ -35,7 +35,7 @@ public class InventoryController {
             @Valid @RequestBody InventoryRequestDto requestDto,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<InventoryResponseDto> response = inventoryService.createInventory(requestDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -46,7 +46,7 @@ public class InventoryController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<InventoryResponseDto> response = inventoryService.getInventoryById(id);
         return ResponseEntity.ok(response);
@@ -58,7 +58,7 @@ public class InventoryController {
             @PathVariable Long productId,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<InventoryResponseDto> response =
                 inventoryService.getInventoryByWarehouseAndProduct(warehouseId, productId);
@@ -67,7 +67,7 @@ public class InventoryController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<InventoryResponseDto>>> getAllInventories(HttpSession session) {
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
         ApiResponse<List<InventoryResponseDto>> response = inventoryService.getAllInventories();
         return ResponseEntity.ok(response);
     }
@@ -77,7 +77,7 @@ public class InventoryController {
             @PathVariable Long warehouseId,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<List<InventoryResponseDto>> response =
                 inventoryService.getInventoriesByWarehouse(warehouseId);
@@ -89,7 +89,7 @@ public class InventoryController {
             @PathVariable Long productId,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<List<InventoryResponseDto>> response =
                 inventoryService.getInventoriesByProduct(productId);
@@ -102,7 +102,7 @@ public class InventoryController {
             @RequestParam(required = false, defaultValue = "10") Integer threshold,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<List<InventoryResponseDto>> response =
                 inventoryService.getLowStockInWarehouse(warehouseId, threshold);
@@ -115,7 +115,7 @@ public class InventoryController {
             @Valid @RequestBody InventoryRequestDto requestDto,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<InventoryResponseDto> response = inventoryService.updateInventory(id, requestDto);
         return ResponseEntity.ok(response);
@@ -128,7 +128,7 @@ public class InventoryController {
             @RequestParam(required = false) Integer qtyReserved,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<InventoryResponseDto> response =
                 inventoryService.adjustQuantities(id, qtyOnHand, qtyReserved);
@@ -140,7 +140,7 @@ public class InventoryController {
             @PathVariable Long id,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<Void> response = inventoryService.deleteInventory(id);
         return ResponseEntity.ok(response);
@@ -152,7 +152,7 @@ public class InventoryController {
             @PathVariable Long productId,
             HttpSession session) {
 
-        permissionService.requireAdmin(session);
+//        permissionService.requireAdmin(session);
 
         ApiResponse<Void> response =
                 inventoryService.deleteInventoryByWarehouseAndProduct(warehouseId, productId);
@@ -164,7 +164,7 @@ public class InventoryController {
             @PathVariable Long productId,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<Integer> response = inventoryService.getTotalStockByProduct(productId);
         return ResponseEntity.ok(response);
@@ -175,7 +175,7 @@ public class InventoryController {
             @PathVariable Long productId,
             HttpSession session) {
 
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
 
         ApiResponse<Integer> response = inventoryService.getAvailableStockByProduct(productId);
         return ResponseEntity.ok(response);
@@ -183,7 +183,7 @@ public class InventoryController {
 
     @GetMapping("/count")
     public ResponseEntity<ApiResponse<Long>> countInventories(HttpSession session) {
-        permissionService.requireWarehouseManager(session);
+//        permissionService.requireWarehouseManager(session);
         ApiResponse<Long> response = inventoryService.countInventories();
         return ResponseEntity.ok(response);
     }
