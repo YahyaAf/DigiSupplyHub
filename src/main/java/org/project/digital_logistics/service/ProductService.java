@@ -8,6 +8,8 @@ import org.project.digital_logistics.exception.ResourceNotFoundException;
 import org.project.digital_logistics.mapper.ProductMapper;
 import org.project.digital_logistics.model.Product;
 import org.project.digital_logistics.repository.ProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ProductService {
 
+    private static final Logger log = LoggerFactory.getLogger(ProductService.class);
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final FileStorageService fileStorageService;
@@ -46,6 +49,7 @@ public class ProductService {
         Product savedProduct = productRepository.save(product);
         ProductResponseDto responseDto = productMapper.toResponseDto(savedProduct);
 
+        log.info("Product has been created successfully");
         return new ApiResponse<>("Product created successfully", responseDto);
     }
 
