@@ -2,6 +2,7 @@ package org. project.digital_logistics.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.project.digital_logistics.dto.ApiResponse;
 import org.project. digital_logistics.dto.authJwt.AuthResponse;
 import org.project.digital_logistics.dto.authJwt.LoginRequest;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth/jwt")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthJwtController {
 
     private final AuthJwtService authJwtService;
@@ -21,6 +23,7 @@ public class AuthJwtController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse authResponse = authJwtService.login(request);
+        log.info("hhhhhhhhhhhhhhhhhhh");
         ApiResponse<AuthResponse> response = new ApiResponse<>("Connexion réussie", authResponse);
         return ResponseEntity. ok(response);
     }

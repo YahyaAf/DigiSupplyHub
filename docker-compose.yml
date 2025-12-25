@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -80,60 +78,20 @@ services:
 
   # ================== ELK STACK ==================
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.0
-    container_name: my-elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-    ports:
-      - "9200:9200"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    networks:
-      - spring-network
-    restart: unless-stopped
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.19.0
-    container_name: my-kibana
-    depends_on:
-      - elasticsearch
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    networks:
-      - spring-network
-    restart: unless-stopped
-
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.19.0
-    container_name: my-logstash
-    depends_on:
-      - elasticsearch
-    volumes:
-      - ./logstash/logstash.conf:/etc/logstash/conf.d/logstash.conf
-    ports:
-      - "5044:5044"
-    networks:
-      - spring-network
-    restart: unless-stopped
-
-  filebeat:
-    image: docker.elastic.co/beats/filebeat:8.19.0
-    container_name: my-filebeat
-    user: root
-    depends_on:
-      - logstash
-    volumes:
-      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
-      - ./logs/app.log:/var/logs/app.log:ro
-    command: filebeat -e --strict.perms=false -c /usr/share/filebeat/filebeat.yml
-    networks:
-      - spring-network
-    restart: unless-stopped
+#  filebeat:
+#    image: docker.elastic.co/beats/filebeat:8.19.0
+#    container_name: my-filebeat
+#    user: root
+#    depends_on:
+#      - logstash
+#    volumes:
+#      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+#      - ./logs/app.log:/var/logs/app.log:ro
+#    command: filebeat -e --strict.perms=false -c /usr/share/filebeat/filebeat.yml
+#    networks:
+#      - spring-network
+#    restart: unless-stopped
 
 volumes:
   postgres_data:
@@ -141,7 +99,6 @@ volumes:
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:
-  elasticsearch_data:
 
 networks:
   spring-network:
