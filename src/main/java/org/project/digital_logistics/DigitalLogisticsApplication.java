@@ -10,4 +10,5 @@ public class DigitalLogisticsApplication {
         SpringApplication.run(DigitalLogisticsApplication.class, args);
     }
 
+
 }
