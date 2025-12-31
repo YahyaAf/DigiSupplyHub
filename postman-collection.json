@@ -1,0 +1,1340 @@
+{
+  "info": {
+    "name": "DigiSupplyHub API",
+    "description": "Collection complète des endpoints API Digital Logistics",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register Client",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client@example.com\",\n  \"password\": \"Password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phoneNumber\": \"+212600000000\",\n  \"address\": \"123 Main Street\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client@example.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Check Auth Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "status"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (ADMIN)",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin123\",\n  \"firstName\": \"Admin\",\n  \"lastName\": \"User\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get User by Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/email/admin@example.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "email", "admin@example.com"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"NewPassword123\",\n  \"firstName\": \"Admin\",\n  \"lastName\": \"Updated\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Count Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "count"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clients (ADMIN)",
+      "item": [
+        {
+          "name": "Create Client",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newclient@example.com\",\n  \"password\": \"Client123\",\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"phoneNumber\": \"+212611111111\",\n  \"address\": \"456 Oak Avenue\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients"]
+            }
+          }
+        },
+        {
+          "name": "Get All Clients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients"]
+            }
+          }
+        },
+        {
+          "name": "Get Client by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Client by Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/email/client@example.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "email", "client@example.com"]
+            }
+          }
+        },
+        {
+          "name": "Get Client by Phone",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/phone/+212600000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "phone", "+212600000000"]
+            }
+          }
+        },
+        {
+          "name": "Update Client",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client@example.com\",\n  \"password\": \"NewPassword123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Updated\",\n  \"phoneNumber\": \"+212600000000\",\n  \"address\": \"789 New Street\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Client",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products (ADMIN)",
+      "item": [
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Laptop Dell XPS 15\",\n  \"description\": \"High performance laptop\",\n  \"sku\": \"DELL-XPS-15-001\",\n  \"category\": \"Electronics\",\n  \"unitPrice\": 1500.00,\n  \"minStockLevel\": 5,\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            }
+          }
+        },
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            }
+          }
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Product by SKU",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/sku/DELL-XPS-15-001",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "sku", "DELL-XPS-15-001"]
+            }
+          }
+        },
+        {
+          "name": "Get Products by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/category/Electronics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "category", "Electronics"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "active"]
+            }
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Laptop Dell XPS 15 Updated\",\n  \"description\": \"High performance laptop - Updated\",\n  \"sku\": \"DELL-XPS-15-001\",\n  \"category\": \"Electronics\",\n  \"unitPrice\": 1450.00,\n  \"minStockLevel\": 10,\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Warehouses (ADMIN)",
+      "item": [
+        {
+          "name": "Create Warehouse",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Main Warehouse Casablanca\",\n  \"code\": \"WH-CASA-001\",\n  \"location\": \"Casablanca, Morocco\",\n  \"capacity\": 10000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/warehouses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "warehouses"]
+            }
+          }
+        },
+        {
+          "name": "Get All Warehouses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/warehouses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "warehouses"]
+            }
+          }
+        },
+        {
+          "name": "Get Warehouse by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/warehouses/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "warehouses", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Warehouse by Code",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/warehouses/code/WH-CASA-001",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "warehouses", "code", "WH-CASA-001"]
+            }
+          }
+        },
+        {
+          "name": "Update Warehouse",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Main Warehouse Casablanca - Updated\",\n  \"code\": \"WH-CASA-001\",\n  \"location\": \"Casablanca, Morocco\",\n  \"capacity\": 15000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/warehouses/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "warehouses", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Warehouse",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/warehouses/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "warehouses", "1"]
+            }
+          }
+        },
+        {
+          "name": "Count Warehouses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/warehouses/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "warehouses", "count"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suppliers (ADMIN)",
+      "item": [
+        {
+          "name": "Create Supplier",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tech Supplies Inc\",\n  \"contactEmail\": \"contact@techsupplies.com\",\n  \"contactPhone\": \"+212522000000\",\n  \"address\": \"Industrial Zone, Casablanca\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/suppliers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "suppliers"]
+            }
+          }
+        },
+        {
+          "name": "Get All Suppliers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/suppliers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "suppliers"]
+            }
+          }
+        },
+        {
+          "name": "Get Supplier by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/suppliers/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "suppliers", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Supplier",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tech Supplies Inc - Updated\",\n  \"contactEmail\": \"info@techsupplies.com\",\n  \"contactPhone\": \"+212522000001\",\n  \"address\": \"New Industrial Zone, Casablanca\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/suppliers/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "suppliers", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Supplier",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/suppliers/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "suppliers", "1"]
+            }
+          }
+        },
+        {
+          "name": "Count Suppliers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/suppliers/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "suppliers", "count"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Carriers",
+      "item": [
+        {
+          "name": "Create Carrier (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"DHL Express\",\n  \"code\": \"DHL-001\",\n  \"contactEmail\": \"contact@dhl.com\",\n  \"contactPhone\": \"+212522111111\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/carriers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "carriers"]
+            }
+          }
+        },
+        {
+          "name": "Get All Carriers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/carriers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "carriers"]
+            }
+          }
+        },
+        {
+          "name": "Get Carrier by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/carriers/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "carriers", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Carrier by Code",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/carriers/code/DHL-001",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "carriers", "code", "DHL-001"]
+            }
+          }
+        },
+        {
+          "name": "Get Carriers by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/carriers/status/AVAILABLE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "carriers", "status", "AVAILABLE"]
+            }
+          }
+        },
+        {
+          "name": "Get Available Carriers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/carriers/available",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "carriers", "available"]
+            }
+          }
+        },
+        {
+          "name": "Update Carrier (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"DHL Express Updated\",\n  \"code\": \"DHL-001\",\n  \"contactEmail\": \"info@dhl.com\",\n  \"contactPhone\": \"+212522111112\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/carriers/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "carriers", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Carrier Status (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/carriers/1/status?status=BUSY",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "carriers", "1", "status"],
+              "query": [{"key": "status", "value": "BUSY"}]
+            }
+          }
+        },
+        {
+          "name": "Assign Shipment to Carrier",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/carriers/1/assign-shipment/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "carriers", "1", "assign-shipment", "1"]
+            }
+          }
+        },
+        {
+          "name": "Assign Multiple Shipments",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "[1, 2, 3]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/carriers/1/assign-multiple",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "carriers", "1", "assign-multiple"]
+            }
+          }
+        },
+        {
+          "name": "Get Carrier Shipments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/carriers/1/shipments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "carriers", "1", "shipments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inventories",
+      "item": [
+        {
+          "name": "Create Inventory (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"warehouseId\": 1,\n  \"productId\": 1,\n  \"quantityOnHand\": 100,\n  \"quantityReserved\": 0,\n  \"reorderPoint\": 20\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventories"]
+            }
+          }
+        },
+        {
+          "name": "Get All Inventories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventories"]
+            }
+          }
+        },
+        {
+          "name": "Get Inventory by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventories/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventories", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Inventory by Warehouse and Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventories/warehouse/1/product/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventories", "warehouse", "1", "product", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Inventories by Warehouse",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventories/warehouse/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventories", "warehouse", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Inventories by Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventories/product/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventories", "product", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Low Stock in Warehouse",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventories/warehouse/1/low-stock?threshold=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventories", "warehouse", "1", "low-stock"],
+              "query": [{"key": "threshold", "value": "10"}]
+            }
+          }
+        },
+        {
+          "name": "Update Inventory (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"warehouseId\": 1,\n  \"productId\": 1,\n  \"quantityOnHand\": 150,\n  \"quantityReserved\": 10,\n  \"reorderPoint\": 25\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventories/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventories", "1"]
+            }
+          }
+        },
+        {
+          "name": "Adjust Quantities (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventories/1/adjust?qtyOnHand=200&qtyReserved=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventories", "1", "adjust"],
+              "query": [
+                {"key": "qtyOnHand", "value": "200"},
+                {"key": "qtyReserved", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Inventory (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventories/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventories", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Inventory by Warehouse and Product (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventories/warehouse/1/product/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventories", "warehouse", "1", "product", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inventory Movements",
+      "item": [
+        {
+          "name": "Get All Movements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory-movements",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory-movements"]
+            }
+          }
+        },
+        {
+          "name": "Get Movements by Inventory",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory-movements/inventory/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory-movements", "inventory", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Movements by Warehouse",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory-movements/warehouse/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory-movements", "warehouse", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Purchase Orders",
+      "item": [
+        {
+          "name": "Create Purchase Order",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supplierId\": 1,\n  \"orderDate\": \"2025-12-29T10:00:00\",\n  \"expectedDeliveryDate\": \"2026-01-15T10:00:00\",\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"quantity\": 50,\n      \"unitPrice\": 1500.00\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-orders"]
+            }
+          }
+        },
+        {
+          "name": "Get All Purchase Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-orders"]
+            }
+          }
+        },
+        {
+          "name": "Get Purchase Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-orders/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-orders", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Purchase Orders by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-orders/status/PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-orders", "status", "PENDING"]
+            }
+          }
+        },
+        {
+          "name": "Get Purchase Orders by Supplier",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-orders/supplier/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-orders", "supplier", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Purchase Order",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supplierId\": 1,\n  \"orderDate\": \"2025-12-29T10:00:00\",\n  \"expectedDeliveryDate\": \"2026-01-20T10:00:00\",\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"quantity\": 75,\n      \"unitPrice\": 1450.00\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-orders/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-orders", "1"]
+            }
+          }
+        },
+        {
+          "name": "Approve Purchase Order (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-orders/1/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-orders", "1", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Receive Purchase Order (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-orders/1/receive?warehouseId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-orders", "1", "receive"],
+              "query": [{"key": "warehouseId", "value": "1"}]
+            }
+          }
+        },
+        {
+          "name": "Cancel Purchase Order (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-orders/1/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-orders", "1", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Delete Purchase Order (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-orders/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-orders", "1"]
+            }
+          }
+        },
+        {
+          "name": "Count Purchase Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-orders/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-orders", "count"]
+            }
+          }
+        },
+        {
+          "name": "Count Purchase Orders by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-orders/count/status/PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-orders", "count", "status", "PENDING"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sales Orders",
+      "item": [
+        {
+          "name": "Create Sales Order (CLIENT)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderDate\": \"2025-12-29T10:00:00\",\n  \"shippingAddress\": \"123 Client Street, Casablanca\",\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"quantity\": 2,\n      \"unitPrice\": 1500.00\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sales-orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales-orders"]
+            }
+          }
+        },
+        {
+          "name": "Get All Sales Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales-orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales-orders"]
+            }
+          }
+        },
+        {
+          "name": "Get Sales Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales-orders/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales-orders", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get My Orders (CLIENT)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales-orders/my-orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales-orders", "my-orders"]
+            }
+          }
+        },
+        {
+          "name": "Get Sales Orders by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales-orders/status/PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales-orders", "status", "PENDING"]
+            }
+          }
+        },
+        {
+          "name": "Get Sales Orders by Client",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales-orders/client/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales-orders", "client", "1"]
+            }
+          }
+        },
+        {
+          "name": "Reserve Stock",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales-orders/1/reserve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales-orders", "1", "reserve"]
+            }
+          }
+        },
+        {
+          "name": "Ship Order",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales-orders/1/ship",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales-orders", "1", "ship"]
+            }
+          }
+        },
+        {
+          "name": "Deliver Order",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales-orders/1/deliver",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales-orders", "1", "deliver"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales-orders/1/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales-orders", "1", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Count Sales Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales-orders/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales-orders", "count"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shipments",
+      "item": [
+        {
+          "name": "Get All Shipments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments"]
+            }
+          }
+        },
+        {
+          "name": "Get Shipment by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Shipment by Sales Order",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/sales-order/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments", "sales-order", "1"]
+            }
+          }
+        },
+        {
+          "name": "Track Shipment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/track/TRACK123456",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments", "track", "TRACK123456"]
+            }
+          }
+        },
+        {
+          "name": "Get Shipments by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/status/PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments", "status", "PENDING"]
+            }
+          }
+        },
+        {
+          "name": "Mark as In Transit",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/1/in-transit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments", "1", "in-transit"]
+            }
+          }
+        },
+        {
+          "name": "Mark as Delivered",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/1/deliver",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments", "1", "deliver"]
+            }
+          }
+        },
+        {
+          "name": "Update Planned Date",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/1/planned-date?plannedDate=2026-01-05T10:00:00",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments", "1", "planned-date"],
+              "query": [{"key": "plannedDate", "value": "2026-01-05T10:00:00"}]
+            }
+          }
+        },
+        {
+          "name": "Delete Shipment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments", "1"]
+            }
+          }
+        },
+        {
+          "name": "Count Shipments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments", "count"]
+            }
+          }
+        },
+        {
+          "name": "Count Shipments by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/count/status/PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments", "count", "status", "PENDING"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+

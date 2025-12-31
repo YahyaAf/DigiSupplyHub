@@ -3,6 +3,7 @@ package org.project.digital_logistics.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.project.digital_logistics.dto.ApiResponse;
 import org.project.digital_logistics.dto.product.ProductRequestDto;
 import org.project.digital_logistics.dto.product.ProductResponseDto;
@@ -11,10 +12,11 @@ import org.project.digital_logistics.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@Slf4j
 @RestController
 @RequestMapping("/api/products")
 @CrossOrigin(origins = "*")
@@ -31,12 +33,10 @@ public class ProductController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ProductResponseDto>> createProduct(
-            @Valid @RequestBody ProductRequestDto requestDto,
-            HttpSession session) {
-
-        permissionService.requireAdmin(session);
-
+            @Valid @RequestBody ProductRequestDto requestDto) {
+            log.info("Creating new product with SKU");
         ApiResponse<ProductResponseDto> response = productService.createProduct(requestDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
