@@ -32,7 +32,7 @@ public class ProductService {
             ProductRepository productRepository,
             ProductMapper productMapper,
             FileStorageService fileStorageService,
-            S3Service s3Service) {
+            @Autowired(required = false) S3Service s3Service) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.fileStorageService = fileStorageService;

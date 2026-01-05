@@ -2,6 +2,7 @@ package org.project.digital_logistics.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Component
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "aws.s3.enabled", havingValue = "true", matchIfMissing = false)
 public class S3Service {
 
     private final S3Client s3Client;

@@ -27,7 +27,7 @@ public class ProductController {
     private final S3Service s3Service;
 
     @Autowired
-    public ProductController(ProductService productService, S3Service s3Service) {
+    public ProductController(ProductService productService, @Autowired(required = false) S3Service s3Service) {
         this.productService = productService;
         this.s3Service = s3Service;
     }
