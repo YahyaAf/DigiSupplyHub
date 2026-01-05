@@ -1,5 +1,6 @@
 package org.project.digital_logistics.service;
 
+import org.project.digital_logistics.config.BusinessRulesConfig;
 import org.project.digital_logistics.dto.ApiResponse;
 import org.project.digital_logistics.dto.salesorder.SalesOrderLineDto;
 import org.project.digital_logistics.dto.salesorder.SalesOrderRequestDto;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 @Service
@@ -30,6 +32,7 @@ public class SalesOrderService {
     private final InventoryMovementService movementService;
     private final ShipmentService shipmentService;
     private final PurchaseOrderService purchaseOrderService;
+    private final BusinessRulesConfig businessRulesConfig;
 
     @Autowired
     public SalesOrderService(SalesOrderRepository salesOrderRepository,
@@ -38,7 +41,8 @@ public class SalesOrderService {
                              InventoryRepository inventoryRepository,
                              InventoryMovementService movementService,
                              ShipmentService shipmentService,
-                             PurchaseOrderService purchaseOrderService) {
+                             PurchaseOrderService purchaseOrderService,
+                             BusinessRulesConfig businessRulesConfig) {
         this.salesOrderRepository = salesOrderRepository;
         this.clientRepository = clientRepository;
         this.productRepository = productRepository;
@@ -46,6 +50,7 @@ public class SalesOrderService {
         this.movementService = movementService;
         this.shipmentService = shipmentService;
         this.purchaseOrderService = purchaseOrderService;
+        this.businessRulesConfig = businessRulesConfig;
     }
 
     private static class StockAllocation {
@@ -305,6 +310,9 @@ public class SalesOrderService {
             );
         }
 
+        // Validation du cut-off time
+        validateShipmentCutoffTime();
+
         for (SalesOrderLine line : salesOrder.getOrderLines()) {
             Integer shippedQty = line.getQuantity();
             Long productId = line.getProduct().getId();
@@ -342,6 +350,70 @@ public class SalesOrderService {
                 "Order shipped successfully. Tracking number: " + shipment.getTrackingNumber(),
                 responseDto
         );
+    }
+
+    /**
+     * Valide que l'expédition peut être effectuée selon les règles de cut-off time
+     * - Avant le cut-off hour (15h par défaut) : OK
+     * - Après le cut-off hour : OK seulement si 12h se sont écoulées depuis le cut-off
+     */
+    private void validateShipmentCutoffTime() {
+        LocalTime currentTime = LocalTime.now();
+        int cutoffHour = businessRulesConfig.getShipmentCutoffHour();
+        int waitHours = businessRulesConfig.getShipmentWaitHours();
+
+        LocalTime cutoffTime = LocalTime.of(cutoffHour, 0);
+        LocalTime nextAllowedTime = cutoffTime.plusHours(waitHours);
+
+        // Si on est avant le cut-off → OK
+        if (currentTime.isBefore(cutoffTime)) {
+            return;
+        }
+
+        // Si on est après le cut-off mais avant l'heure autorisée le lendemain
+        // Par exemple: cut-off à 15h, wait 12h → autorisé après 3h du matin le lendemain
+        if (currentTime.isAfter(cutoffTime) && currentTime.isBefore(LocalTime.of(cutoffHour, 0))) {
+            // On est le lendemain avant le cut-off → OK
+            if (nextAllowedTime.isBefore(cutoffTime)) {
+                // Exemple: cutoff=15h, wait=12h → nextAllowed=3h (lendemain)
+                // Si maintenant = 10h → on est le lendemain et c'est OK
+                return;
+            }
+        }
+
+        // Vérifier si on est dans la période bloquée (après cut-off, avant wait)
+        boolean inBlockedPeriod = currentTime.isAfter(cutoffTime);
+
+        if (inBlockedPeriod) {
+            // Calculer l'heure à laquelle l'expédition sera à nouveau possible
+            LocalDateTime nextShipmentAllowed;
+            if (nextAllowedTime.isBefore(cutoffTime)) {
+                // Le nextAllowed est le lendemain matin
+                nextShipmentAllowed = LocalDateTime.now()
+                        .plusDays(1)
+                        .with(nextAllowedTime);
+            } else {
+                // Le nextAllowed est dans la même journée
+                nextShipmentAllowed = LocalDateTime.now().with(nextAllowedTime);
+            }
+
+            // Si on n'a pas encore atteint l'heure autorisée
+            if (LocalDateTime.now().isBefore(nextShipmentAllowed)) {
+                throw new InvalidOperationException(
+                        String.format(
+                                "⏰ Impossible d'expédier maintenant. " +
+                                "Heure limite d'expédition dépassée (%02d:00). " +
+                                "Prochaine expédition possible : %s à %02d:00. " +
+                                "Délai d'attente : %d heures après le cut-off.",
+                                cutoffHour,
+                                nextShipmentAllowed.toLocalDate().equals(LocalDateTime.now().toLocalDate())
+                                    ? "aujourd'hui" : "demain",
+                                nextAllowedTime.getHour(),
+                                waitHours
+                        )
+                );
+            }
+        }
     }
 
     @Transactional
