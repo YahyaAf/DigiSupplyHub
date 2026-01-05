@@ -30,7 +30,7 @@ public class PurchaseOrder {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
-    private PurchaseOrderStatus status = PurchaseOrderStatus.CREATED; // ✅ Default
+    private PurchaseOrderStatus status = PurchaseOrderStatus.CREATED;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -46,6 +46,9 @@ public class PurchaseOrder {
 
     @Column(name = "canceled_at")
     private LocalDateTime canceledAt;
+
+    @Column(name = "related_sales_order_id")
+    private Long relatedSalesOrderId;
 
     @OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

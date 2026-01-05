@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -263,5 +264,35 @@ public class PurchaseOrderService {
     public ApiResponse<Long> countPurchaseOrdersByStatus(PurchaseOrderStatus status) {
         long count = purchaseOrderRepository.countByStatus(status);
         return new ApiResponse<>("Purchase orders counted successfully", count);
+    }
+
+    /**
+     * Create a Purchase Order automatically for out-of-stock products
+     * This is triggered when a Sales Order cannot be reserved due to insufficient stock
+     */
+    @Transactional
+    public PurchaseOrder createAutoPurchaseOrder(Product product, Integer quantity, Long salesOrderId) {
+        // Find a supplier for this product (use the first available supplier)
+        // In a real scenario, you might want to select based on product-supplier relationships
+        Supplier supplier = supplierRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No supplier available to create auto purchase order"));
+
+        PurchaseOrder purchaseOrder = PurchaseOrder.builder()
+                .supplier(supplier)
+                .expectedDelivery(LocalDateTime.now().plusDays(7)) // Default 7 days delivery
+                .relatedSalesOrderId(salesOrderId)
+                .build();
+
+        PurchaseOrderLine line = PurchaseOrderLine.builder()
+                .purchaseOrder(purchaseOrder)
+                .product(product)
+                .quantity(quantity)
+                .unitPrice(product.getOriginalPrice() != null ? BigDecimal.valueOf(product.getOriginalPrice()) : BigDecimal.ZERO)
+                .build();
+
+        purchaseOrder.addOrderLine(line);
+
+        return purchaseOrderRepository.save(purchaseOrder);
     }
 }

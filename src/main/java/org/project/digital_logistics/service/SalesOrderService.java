@@ -29,6 +29,7 @@ public class SalesOrderService {
     private final InventoryRepository inventoryRepository;
     private final InventoryMovementService movementService;
     private final ShipmentService shipmentService;
+    private final PurchaseOrderService purchaseOrderService;
 
     @Autowired
     public SalesOrderService(SalesOrderRepository salesOrderRepository,
@@ -36,13 +37,15 @@ public class SalesOrderService {
                              ProductRepository productRepository,
                              InventoryRepository inventoryRepository,
                              InventoryMovementService movementService,
-                             ShipmentService shipmentService) {
+                             ShipmentService shipmentService,
+                             PurchaseOrderService purchaseOrderService) {
         this.salesOrderRepository = salesOrderRepository;
         this.clientRepository = clientRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
         this.movementService = movementService;
         this.shipmentService = shipmentService;
+        this.purchaseOrderService = purchaseOrderService;
     }
 
     private static class StockAllocation {
@@ -61,41 +64,13 @@ public class SalesOrderService {
         Client client = clientRepository.findById(authenticatedClientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Client", "id", authenticatedClientId));
 
-        // 2. Create Sales Order
+        // 2. Create Sales Order with CREATED status
         SalesOrder salesOrder = SalesOrder.builder()
                 .client(client)
+                .status(OrderStatus.CREATED)
                 .build();
 
-        // 3. Check stock availability for all products
-        boolean allStockAvailable = true;
-        Map<Long, Integer> stockRequirements = new HashMap<>(); // productId -> quantity
-
-        for (SalesOrderLineDto lineDto : requestDto.getOrderLines()) {
-            Product product = productRepository.findById(lineDto.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product", "id", lineDto.getProductId()));
-
-            Integer requestedQty = lineDto.getQuantity();
-            stockRequirements.put(product.getId(), requestedQty);
-
-            // Get available stock
-            List<Inventory> availableInventories = inventoryRepository.findByProductId(product.getId());
-
-            if (availableInventories.isEmpty()) {
-                allStockAvailable = false;
-                break;
-            }
-
-            Integer totalAvailable = availableInventories.stream()
-                    .mapToInt(inv -> inv.getQtyOnHand() - inv.getQtyReserved())
-                    .sum();
-
-            if (totalAvailable < requestedQty) {
-                allStockAvailable = false;
-                break;
-            }
-        }
-
-        // 4. Create order lines (temporary warehouse assignment)
+        // 3. Create order lines (temporary warehouse assignment)
         for (SalesOrderLineDto lineDto : requestDto.getOrderLines()) {
             Product product = productRepository.findById(lineDto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product", "id", lineDto.getProductId()));
@@ -116,9 +91,14 @@ public class SalesOrderService {
                         .stream()
                         .findFirst()
                         .map(Inventory::getWarehouse)
-                        .orElseThrow(() -> new ResourceNotFoundException(
-                                "No warehouse found for product: " + product.getName()
-                        ));
+                        .orElse(null);
+
+                // If still no warehouse, use a default one or skip
+                if (tempWarehouse == null) {
+                    throw new ResourceNotFoundException(
+                            "No warehouse found for product: " + product.getName()
+                    );
+                }
             }
 
             SalesOrderLine line = SalesOrderMapper.toLineEntity(
@@ -127,23 +107,11 @@ public class SalesOrderService {
             salesOrder.addOrderLine(line);
         }
 
-        // 5. Save order first
+        // 4. Save order with CREATED status
         SalesOrder savedOrder = salesOrderRepository.save(salesOrder);
 
-        String message;
-
-        if (allStockAvailable) {
-            try {
-                savedOrder = performStockReservation(savedOrder);
-                message = "Sales order created and stock reserved successfully";
-            } catch (Exception e) {
-                message = "Sales order created but auto-reservation failed. Status: CREATED. " +
-                        "Please add more stock and reserve manually.";
-            }
-        } else {
-            message = "Sales order created successfully but not reserved yet. " +
-                    "Insufficient stock available. Please wait for stock replenishment.";
-        }
+        String message = "Sales order created successfully with status CREATED. " +
+                "To reserve stock, call the reserve endpoint.";
 
         SalesOrderResponseDto responseDto = SalesOrderMapper.toResponseDto(savedOrder);
         return new ApiResponse<>(message, responseDto);
@@ -213,7 +181,9 @@ public class SalesOrderService {
             );
         }
 
+        // Check stock availability for each product
         List<String> insufficientProducts = new ArrayList<>();
+        List<PurchaseOrder> createdPurchaseOrders = new ArrayList<>();
 
         for (SalesOrderLine line : salesOrder.getOrderLines()) {
             Product product = line.getProduct();
@@ -225,24 +195,52 @@ public class SalesOrderService {
                     .sum();
 
             if (totalAvailable < requestedQty) {
+                Integer missingQty = requestedQty - totalAvailable;
                 insufficientProducts.add(product.getName() +
-                        " (Requested: " + requestedQty + ", Available: " + totalAvailable + ")");
+                        " (Demandé: " + requestedQty + ", Disponible: " + totalAvailable + ")");
+
+                // Create automatic Purchase Order for the missing quantity
+                try {
+                    PurchaseOrder autoPO = purchaseOrderService.createAutoPurchaseOrder(
+                            product, missingQty, salesOrder.getId()
+                    );
+                    createdPurchaseOrders.add(autoPO);
+                } catch (Exception e) {
+                    // Log error but continue processing
+                    System.err.println("Failed to create auto purchase order for product: " + product.getName());
+                }
             }
         }
 
+        // If some products have insufficient stock
         if (!insufficientProducts.isEmpty()) {
-            throw new InsufficientStockException(
-                    "Cannot reserve stock. Insufficient quantity for: " +
-                            String.join(", ", insufficientProducts) +
-                            ". Please add more stock to inventory."
-            );
+            StringBuilder message = new StringBuilder();
+            message.append("Certains produits n'ont pas de stock suffisant:\n");
+            message.append(String.join("\n", insufficientProducts));
+            message.append("\n\nBonne nouvelle! Nous avons automatiquement créé ");
+            message.append(createdPurchaseOrders.size());
+            message.append(" commande(s) d'achat pour les produits manquants.\n");
+            message.append("Veuillez patienter quelques jours le temps de recevoir le stock.\n");
+            message.append("Statut de la commande: CREATED (en attente de stock)");
+
+            SalesOrderResponseDto responseDto = SalesOrderMapper.toResponseDto(salesOrder);
+            return new ApiResponse<>(message.toString(), responseDto);
         }
 
-        // Perform reservation
-        SalesOrder reservedOrder = performStockReservation(salesOrder);
-        SalesOrderResponseDto responseDto = SalesOrderMapper.toResponseDto(reservedOrder);
+        // All stock is available, proceed with reservation
+        try {
+            SalesOrder reservedOrder = performStockReservation(salesOrder);
+            SalesOrderResponseDto responseDto = SalesOrderMapper.toResponseDto(reservedOrder);
 
-        return new ApiResponse<>("Stock reserved successfully from multiple warehouses", responseDto);
+            return new ApiResponse<>(
+                    "Stock réservé avec succès! Votre commande est prête à être expédiée.",
+                    responseDto
+            );
+        } catch (Exception e) {
+            throw new InsufficientStockException(
+                    "Impossible de réserver le stock. Une erreur est survenue: " + e.getMessage()
+            );
+        }
     }
 
     private List<StockAllocation> allocateStockAcrossWarehouses(Long productId, Integer requestedQty) {
