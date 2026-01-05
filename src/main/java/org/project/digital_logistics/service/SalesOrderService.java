@@ -176,14 +176,23 @@ public class SalesOrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("SalesOrder", "id", id));
 
         if (salesOrder.getStatus() != OrderStatus.CREATED) {
+            if (salesOrder.getStatus() == OrderStatus.BACKORDER) {
+                throw new InvalidOperationException(
+                        "Impossible de réserver cette commande. " +
+                        "Elle est en attente de réapprovisionnement (status: BACKORDER). " +
+                        "Veuillez patienter que tous les produits soient disponibles. " +
+                        "Vous serez notifié quand la réservation sera possible."
+                );
+            }
             throw new InvalidOperationException(
                     "Can only reserve stock for CREATED orders. Current status: " + salesOrder.getStatus()
             );
         }
 
         // Check stock availability for each product
-        List<String> insufficientProducts = new ArrayList<>();
+        Map<Long, Integer> insufficientProducts = new HashMap<>(); // productId -> missing quantity
         List<PurchaseOrder> createdPurchaseOrders = new ArrayList<>();
+        boolean allStockAvailable = true;
 
         for (SalesOrderLine line : salesOrder.getOrderLines()) {
             Product product = line.getProduct();
@@ -196,8 +205,8 @@ public class SalesOrderService {
 
             if (totalAvailable < requestedQty) {
                 Integer missingQty = requestedQty - totalAvailable;
-                insufficientProducts.add(product.getName() +
-                        " (Demandé: " + requestedQty + ", Disponible: " + totalAvailable + ")");
+                insufficientProducts.put(product.getId(), missingQty);
+                allStockAvailable = false;
 
                 // Create automatic Purchase Order for the missing quantity
                 try {
@@ -213,15 +222,27 @@ public class SalesOrderService {
         }
 
         // If some products have insufficient stock
-        if (!insufficientProducts.isEmpty()) {
+        if (!allStockAvailable) {
+            // Change status to BACKORDER
+            salesOrder.setStatus(OrderStatus.BACKORDER);
+            salesOrderRepository.save(salesOrder);
+
             StringBuilder message = new StringBuilder();
-            message.append("Certains produits n'ont pas de stock suffisant:\n");
-            message.append(String.join("\n", insufficientProducts));
-            message.append("\n\nBonne nouvelle! Nous avons automatiquement créé ");
-            message.append(createdPurchaseOrders.size());
-            message.append(" commande(s) d'achat pour les produits manquants.\n");
-            message.append("Veuillez patienter quelques jours le temps de recevoir le stock.\n");
-            message.append("Statut de la commande: CREATED (en attente de stock)");
+            message.append("Stock insuffisant pour certains produits:\n\n");
+
+            for (Map.Entry<Long, Integer> entry : insufficientProducts.entrySet()) {
+                Product product = productRepository.findById(entry.getKey()).orElse(null);
+                if (product != null) {
+                    message.append("• ").append(product.getName())
+                           .append(" - Quantité manquante: ").append(entry.getValue()).append(" unités\n");
+                }
+            }
+
+            message.append("\nBonne nouvelle! Nous avons automatiquement créé ")
+                   .append(createdPurchaseOrders.size())
+                   .append(" commande(s) d'achat pour réapprovisionner le stock.\n\n");
+            message.append("Votre commande sera automatiquement réservée dès réception de TOUS les produits manquants.\n\n");
+            message.append("Statut de votre commande: BACKORDER (en attente de réapprovisionnement)");
 
             SalesOrderResponseDto responseDto = SalesOrderMapper.toResponseDto(salesOrder);
             return new ApiResponse<>(message.toString(), responseDto);

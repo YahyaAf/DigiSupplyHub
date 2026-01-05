@@ -10,6 +10,7 @@ import org.project.digital_logistics.exception.ResourceNotFoundException;
 import org.project.digital_logistics.mapper.PurchaseOrderMapper;
 import org.project.digital_logistics.model.*;
 import org.project.digital_logistics.model.enums.MovementType;
+import org.project.digital_logistics.model.enums.OrderStatus;
 import org.project.digital_logistics.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class PurchaseOrderService {
     private final InventoryRepository inventoryRepository;
     private final WarehouseRepository warehouseRepository;
     private final InventoryMovementService movementService;
+    private final SalesOrderRepository salesOrderRepository;
 
     @Autowired
     public PurchaseOrderService(PurchaseOrderRepository purchaseOrderRepository,
@@ -36,13 +38,15 @@ public class PurchaseOrderService {
                                 ProductRepository productRepository,
                                 InventoryRepository inventoryRepository,
                                 WarehouseRepository warehouseRepository,
-                                InventoryMovementService movementService) {
+                                InventoryMovementService movementService,
+                                SalesOrderRepository salesOrderRepository) {
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.supplierRepository = supplierRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
         this.warehouseRepository = warehouseRepository;
         this.movementService = movementService;
+        this.salesOrderRepository = salesOrderRepository;
     }
 
     @Transactional
@@ -210,9 +214,128 @@ public class PurchaseOrderService {
         purchaseOrder.setReceivedAt(LocalDateTime.now());
 
         PurchaseOrder savedOrder = purchaseOrderRepository.save(purchaseOrder);
+
+        // Check if this PO is related to a Sales Order and try to auto-reserve
+        String autoReserveMessage = "";
+        if (savedOrder.getRelatedSalesOrderId() != null) {
+            autoReserveMessage = tryAutoReserveSalesOrder(savedOrder.getRelatedSalesOrderId());
+        }
+
         PurchaseOrderResponseDto responseDto = PurchaseOrderMapper.toResponseDto(savedOrder);
 
-        return new ApiResponse<>("Purchase order received successfully and inventory updated", responseDto);
+        String finalMessage = "Purchase order received successfully and inventory updated";
+        if (!autoReserveMessage.isEmpty()) {
+            finalMessage += "\n\n" + autoReserveMessage;
+        }
+
+        return new ApiResponse<>(finalMessage, responseDto);
+    }
+
+    /**
+     * Try to automatically reserve a Sales Order if all required stock is now available
+     */
+    private String tryAutoReserveSalesOrder(Long salesOrderId) {
+        try {
+            SalesOrder salesOrder = salesOrderRepository.findById(salesOrderId).orElse(null);
+
+            if (salesOrder == null || salesOrder.getStatus() != OrderStatus.BACKORDER) {
+                return "";
+            }
+
+            // Check if ALL products now have enough stock
+            boolean allStockAvailable = true;
+            for (SalesOrderLine line : salesOrder.getOrderLines()) {
+                Product product = line.getProduct();
+                Integer requestedQty = line.getQuantity();
+
+                Integer totalAvailable = inventoryRepository.findByProductId(product.getId())
+                        .stream()
+                        .mapToInt(inv -> inv.getQtyOnHand() - inv.getQtyReserved())
+                        .sum();
+
+                if (totalAvailable < requestedQty) {
+                    allStockAvailable = false;
+                    break;
+                }
+            }
+
+            if (allStockAvailable) {
+                // All stock is now available! Reserve the stock automatically
+                boolean reservationSuccess = performStockReservation(salesOrder);
+
+                if (reservationSuccess) {
+                    return "Bonne nouvelle! Tous les produits de la commande #" + salesOrderId +
+                           " sont maintenant en stock et ont été réservés automatiquement. Status: RESERVED";
+                } else {
+                    // If reservation fails, change status back to CREATED so client can try
+                    salesOrder.setStatus(OrderStatus.CREATED);
+                    salesOrderRepository.save(salesOrder);
+                    return "Tous les produits de la commande #" + salesOrderId +
+                           " sont maintenant en stock. Status changé à CREATED. Le client peut maintenant réserver.";
+                }
+            } else {
+                return "Stock reçu, mais d'autres produits sont encore en attente pour la commande #" + salesOrderId;
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error trying to auto-reserve Sales Order " + salesOrderId + ": " + e.getMessage());
+            return "";
+        }
+    }
+
+    /**
+     * Perform actual stock reservation for a Sales Order
+     * Updates qtyReserved in inventories and changes status to RESERVED
+     */
+    private boolean performStockReservation(SalesOrder salesOrder) {
+        try {
+            // For each product in the sales order, reserve stock from available inventories
+            for (SalesOrderLine line : salesOrder.getOrderLines()) {
+                Product product = line.getProduct();
+                Integer requestedQty = line.getQuantity();
+                Integer remainingQty = requestedQty;
+
+                // Get all inventories for this product sorted by available quantity (descending)
+                List<Inventory> inventories = inventoryRepository.findByProductId(product.getId())
+                        .stream()
+                        .filter(inv -> (inv.getQtyOnHand() - inv.getQtyReserved()) > 0)
+                        .sorted((a, b) -> Integer.compare(
+                                b.getQtyOnHand() - b.getQtyReserved(),
+                                a.getQtyOnHand() - a.getQtyReserved()
+                        ))
+                        .toList();
+
+                // Reserve stock from each warehouse
+                for (Inventory inventory : inventories) {
+                    if (remainingQty <= 0) break;
+
+                    Integer available = inventory.getQtyOnHand() - inventory.getQtyReserved();
+                    Integer toReserve = Math.min(available, remainingQty);
+
+                    // Update reserved quantity
+                    inventory.setQtyReserved(inventory.getQtyReserved() + toReserve);
+                    inventoryRepository.save(inventory);
+
+                    remainingQty -= toReserve;
+                }
+
+                // Check if all quantity was reserved
+                if (remainingQty > 0) {
+                    // Rollback reservations and return false
+                    return false;
+                }
+            }
+
+            // All stock reserved successfully, update status
+            salesOrder.setStatus(OrderStatus.RESERVED);
+            salesOrder.setReservedAt(LocalDateTime.now());
+            salesOrderRepository.save(salesOrder);
+
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error performing stock reservation: " + e.getMessage());
+            return false;
+        }
     }
 
     @Transactional
