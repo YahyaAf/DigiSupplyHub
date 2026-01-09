@@ -7,6 +7,7 @@ import org.project.digital_logistics.dto.ApiResponse;
 import org.project. digital_logistics.dto.authJwt.AuthResponse;
 import org.project.digital_logistics.dto.authJwt.LoginRequest;
 import org.project.digital_logistics.dto.authJwt.RefreshTokenRequest;
+import org.project.digital_logistics.dto.authJwt.RegisterRequest;
 import org.project.digital_logistics.service.AuthJwtService;
 import org.springframework.http.ResponseEntity;
 import org.springframework. security.core.Authentication;
@@ -26,6 +27,12 @@ public class AuthJwtController {
         log.info("hhhhhhhhhhhhhhhhhhh");
         ApiResponse<AuthResponse> response = new ApiResponse<>("Connexion réussie", authResponse);
         return ResponseEntity. ok(response);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody RegisterRequest request) {
+        ApiResponse<String> response = authJwtService.register(request);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/refresh")

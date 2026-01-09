@@ -2,14 +2,16 @@ package org.project.digital_logistics. service;
 
 import lombok.RequiredArgsConstructor;
 import org.project.digital_logistics.config.JwtUtil;
+import org.project.digital_logistics.dto.ApiResponse;
+import org.project.digital_logistics.dto.ClientRequestDto;
 import org.project.digital_logistics.dto.authJwt.AuthResponse;
 import org.project.digital_logistics.dto.authJwt.LoginRequest;
 import org.project.digital_logistics.dto.authJwt.RefreshTokenRequest;
+import org.project.digital_logistics.dto.authJwt.RegisterRequest;
 import org.project.digital_logistics.model.RefreshToken;
 import org.project.digital_logistics.model.User;
 import org.project.digital_logistics.repository.UserRepository;
 import org.springframework.security. authentication.AuthenticationManager;
-import org.springframework.security.authentication. BadCredentialsException;
 import org.springframework.security.authentication. UsernamePasswordAuthenticationToken;
 import org.springframework.security. core.Authentication;
 import org. springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,6 +26,7 @@ public class AuthJwtService {
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
+    private final ClientService clientService;
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
@@ -80,5 +83,25 @@ public class AuthJwtService {
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé avec email: " + email));
 
         refreshTokenService.revokeUserTokens(user);
+    }
+
+    @Transactional
+    public ApiResponse<String> register(RegisterRequest request) {
+        ClientRequestDto clientRequestDto = ClientRequestDto.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .password(request.getPassword())
+                .phoneNumber(request.getPhoneNumber())
+                .address(request.getAddress())
+                .active(true)
+                .build();
+
+        clientService.createClient(clientRequestDto);
+
+        return ApiResponse.<String>builder()
+                .success(true)
+                .message("Inscription réussie. Veuillez vous connecter.")
+                .data(null)
+                .build();
     }
 }
