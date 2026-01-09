@@ -1,7 +1,7 @@
 package org.project.digital_logistics.config;
 
 import lombok.RequiredArgsConstructor;
-import org.project. digital_logistics.service.CustomUserDetailsService;
+import org.project.digital_logistics.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -10,13 +10,18 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security. config.annotation.web.builders. HttpSecurity;
-import org.springframework.security.config.annotation. web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security. crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org. springframework.security.web.authentication. UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -29,6 +34,20 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -46,19 +65,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/jwt/**", "/api/public/**").permitAll()
 
                         // ========== CARRIERS ==========
-                        . requestMatchers(HttpMethod.GET, "/api/carriers/**")
+                        .requestMatchers(HttpMethod.GET, "/api/carriers/**")
                         .hasAnyRole("ADMIN", "WAREHOUSE_MANAGER", "CLIENT")
                         .requestMatchers(HttpMethod.POST, "/api/carriers").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/carriers/reset-daily-shipments").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/carriers/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/carriers/*/assign-shipment/*")
-                        . hasAnyRole("ADMIN", "WAREHOUSE_MANAGER")
+                        .hasAnyRole("ADMIN", "WAREHOUSE_MANAGER")
                         .requestMatchers(HttpMethod.PATCH, "/api/carriers/*/assign-multiple")
                         .hasAnyRole("ADMIN", "WAREHOUSE_MANAGER")
                         .requestMatchers(HttpMethod.PATCH, "/api/carriers/**").hasRole("ADMIN")
@@ -80,7 +100,7 @@ public class SecurityConfig {
 
                         // ========== INVENTORY MOVEMENTS ==========
                         .requestMatchers(HttpMethod.GET, "/api/inventory-movements/**")
-                        . hasAnyRole("ADMIN", "WAREHOUSE_MANAGER")
+                        .hasAnyRole("ADMIN", "WAREHOUSE_MANAGER")
                         .requestMatchers(HttpMethod.POST, "/api/inventory-movements")
                         .hasAnyRole("ADMIN", "WAREHOUSE_MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/api/inventory-movements/**")
@@ -128,7 +148,7 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "WAREHOUSE_MANAGER")
 
                         // ========== SUPPLIERS ==========
-                        . requestMatchers(HttpMethod.GET, "/api/suppliers/**")
+                        .requestMatchers(HttpMethod.GET, "/api/suppliers/**")
                         .hasAnyRole("ADMIN", "WAREHOUSE_MANAGER")
                         .requestMatchers(HttpMethod.POST, "/api/suppliers").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/suppliers/**").hasRole("ADMIN")
@@ -141,14 +161,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
 
                         // ========== WAREHOUSES (Entrepôts) ==========
-                        // ADMIN:  CRUD | WAREHOUSE_MANAGER: R
                         .requestMatchers(HttpMethod.GET, "/api/warehouses/**")
                         .hasAnyRole("ADMIN", "WAREHOUSE_MANAGER")
                         .requestMatchers(HttpMethod.POST, "/api/warehouses").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/warehouses/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/warehouses/**").hasRole("ADMIN")
 
-                        . anyRequest().authenticated()
+                        .anyRequest().authenticated()
                 )
 
                 .sessionManagement(session ->
