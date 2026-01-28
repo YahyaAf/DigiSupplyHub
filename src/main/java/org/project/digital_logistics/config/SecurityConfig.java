@@ -132,6 +132,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/sales-orders").hasRole("CLIENT")
                         .requestMatchers(HttpMethod.GET, "/api/sales-orders/my-orders").hasRole("CLIENT")
                         .requestMatchers(HttpMethod.PATCH, "/api/sales-orders/*/reserve").hasRole("CLIENT")
+                        .requestMatchers(HttpMethod.PATCH, "/api/sales-orders/*/cancel").hasRole("CLIENT")
                         .requestMatchers(HttpMethod.GET, "/api/sales-orders/**")
                         .hasAnyRole("ADMIN", "WAREHOUSE_MANAGER")
                         .requestMatchers(HttpMethod.PATCH, "/api/sales-orders/**")
